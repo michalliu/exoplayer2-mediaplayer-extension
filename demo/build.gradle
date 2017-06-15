@@ -1,0 +1,30 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion project.ext.compileSdkVersion
+    buildToolsVersion project.ext.buildToolsVersion
+
+    defaultConfig {
+        minSdkVersion 16
+        targetSdkVersion project.ext.targetSdkVersion
+    }
+
+    buildTypes {
+        release {
+            shrinkResources true
+            minifyEnabled true
+        }
+        debug {
+            jniDebuggable = true
+        }
+    }
+
+    lintOptions {
+        // The demo app does not have translations.
+        disable 'MissingTranslation'
+    }
+}
+
+dependencies {
+    compile project(':library')
+}
