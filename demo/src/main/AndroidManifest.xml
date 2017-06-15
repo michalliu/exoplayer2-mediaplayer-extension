@@ -1,6 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.google.android.exoplayer2.demo"
-    android:versionCode="2402"
-    android:versionName="2.4.2">
+    android:versionCode="100"
+    android:versionName="1.0.0">
+
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+
+    <uses-sdk android:minSdkVersion="16" android:targetSdkVersion="24"/>
+
+
+    <application
+        android:label="@string/application_name"
+        android:icon="@mipmap/ic_launcher"
+        android:banner="@drawable/ic_banner"
+        android:largeHeap="true"
+        android:allowBackup="false"
+        android:name="com.google.android.exoplayer2.demo.DemoApplication">
+
+        <activity android:name="com.google.android.exoplayer2.demo.PlayerActivitySurfaceView"
+            android:configChanges="keyboard|keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize|uiMode"
+            android:launchMode="singleTop"
+            android:label="@string/application_name"
+            android:theme="@style/PlayerTheme">
+            <intent-filter>
+                <action android:name="com.google.android.exoplayer.demo.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:scheme="http"/>
+                <data android:scheme="https"/>
+                <data android:scheme="content"/>
+                <data android:scheme="asset"/>
+                <data android:scheme="file"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="com.google.android.exoplayer.demo.action.VIEW_LIST"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+    </application>
 </manifest>
