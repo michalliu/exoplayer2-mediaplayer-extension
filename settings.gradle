@@ -1,5 +1,5 @@
-include ':library'
+include ':extension-mediaplayer'
 include ':demo'
 
-project(':library').projectDir = new File(settingsDir, 'library')
+project(':extension-mediaplayer').projectDir = new File(settingsDir, 'extension-mediaplayer')
 project(':demo').projectDir = new File(settingsDir, 'demo')
