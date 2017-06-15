@@ -1,0 +1,18 @@
+apply plugin: 'com.android.library'
+
+android {
+    compileSdkVersion project.ext.compileSdkVersion
+    buildToolsVersion project.ext.buildToolsVersion
+
+    defaultConfig {
+        minSdkVersion project.ext.minSdkVersion
+        targetSdkVersion project.ext.targetSdkVersion
+    }
+}
+
+dependencies {
+    compile 'com.google.android.exoplayer:exoplayer-core:r2.4.2'
+    compile 'com.google.android.exoplayer:exoplayer-smoothstreaming:r2.4.2'
+    compile 'com.google.android.exoplayer:exoplayer-hls:r2.4.2'
+    compile 'com.google.android.exoplayer:exoplayer-dash:r2.4.2'
+}
