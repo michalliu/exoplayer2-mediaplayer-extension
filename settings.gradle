@@ -1,0 +1,5 @@
+include ':library'
+include ':demo'
+
+project(':library').projectDir = new File(settingsDir, 'library')
+project(':demo').projectDir = new File(settingsDir, 'demo')
