@@ -2,11 +2,15 @@ package com.google.android.exoplayer2.demo;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.annotation.Nullable;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.ImageButton;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -21,6 +25,7 @@ public class PlayerActivitySurfaceView extends Activity implements
         ExoMediaPlayer.OnPreparedListener,
         ExoMediaPlayer.OnSeekCompleteListener,
         ExoMediaPlayer.OnBufferingUpdateListener,
+        CheckBox.OnCheckedChangeListener,
         View.OnClickListener {
 
     public static final String TAG = "PlayerActivity";
@@ -32,12 +37,15 @@ public class PlayerActivitySurfaceView extends Activity implements
     private boolean mJustCreatePlayer;
     private TextView mDebugTextView;
     private TextView mVideoDurationView;
+    private boolean mIsLoopingPlay;
+    private Handler mMainHandler;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.single_surfaceview);
         SurfaceView surfaceView = (SurfaceView) findViewById(R.id.main_surface);
+        CheckBox loopCheckBox = (CheckBox)findViewById(R.id.loopcheckbox);
         mSurfaceHolder = surfaceView.getHolder();
         mSurfaceHolder.addCallback(this);
         mSeekBar = (SeekBar) findViewById(R.id.seekbar);
@@ -47,6 +55,9 @@ public class PlayerActivitySurfaceView extends Activity implements
         mPlayPauseButton.setEnabled(false);
         mDebugTextView = (TextView) findViewById(R.id.debugtextview);
         mVideoDurationView = (TextView) findViewById(R.id.videoDuration);
+        mIsLoopingPlay = loopCheckBox.isChecked();
+        mMainHandler = new Handler(Looper.getMainLooper());
+        loopCheckBox.setOnCheckedChangeListener(this);
     }
 
     @Override
@@ -71,6 +82,7 @@ public class PlayerActivitySurfaceView extends Activity implements
         mMediaPlayer.start();
         mSeekBar.setMax((int) mMediaPlayer.getDuration());
         mVideoDurationView.setText(String.valueOf(mMediaPlayer.getDuration()));
+        refreshProgressbarLoop();
         updatePlayStatus();
     }
 
@@ -130,12 +142,24 @@ public class PlayerActivitySurfaceView extends Activity implements
         }
     }
 
+    @Override
+    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+        Log.d(TAG, "LoopingCheckBox isChecked " + isChecked);
+        mIsLoopingPlay = isChecked;
+        if(mMediaPlayer == null) {
+            return;
+        }
+        Log.d(TAG, "setLooping " + isChecked);
+        mMediaPlayer.setLooping(isChecked);
+    }
+
     private void initPlayer() {
         mMediaPlayer = new ExoMediaPlayer(getApplicationContext());
         mMediaPlayer.setDisplay(mSurfaceHolder);
         mMediaPlayer.setOnPreparedListener(this);
         mMediaPlayer.setOnBufferingUpdateListener(this);
         mMediaPlayer.setOnSeekCompleteListener(this);
+        mMediaPlayer.setLooping(mIsLoopingPlay);
         mJustCreatePlayer = true;
     }
 
@@ -153,6 +177,18 @@ public class PlayerActivitySurfaceView extends Activity implements
             mPlayPauseButton.setImageResource(android.R.drawable.ic_media_pause);
         } else {
             mPlayPauseButton.setImageResource(android.R.drawable.ic_media_play);
+        }
+    }
+
+    private void refreshProgressbarLoop() {
+        if (mMediaPlayer != null) {
+            mSeekBar.setProgress((int) mMediaPlayer.getCurrentPosition());
+            mMainHandler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    refreshProgressbarLoop();
+                }
+            }, 1000);
         }
     }
 }

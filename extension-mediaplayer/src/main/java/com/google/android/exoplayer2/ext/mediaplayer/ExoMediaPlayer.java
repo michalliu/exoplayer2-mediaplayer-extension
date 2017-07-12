@@ -391,6 +391,17 @@ public class ExoMediaPlayer implements MediaPlayerInterface {
     @Override
     public void setLooping(boolean looping) {
         mIsLooping = looping;
+        if (mMediaSource != null) { // dynamic change loop setting
+            if (mMediaSource instanceof LoopingMediaSource) {
+                if (mIsLooping) {
+                    ((LoopingMediaSource) mMediaSource).setLoopCount(Integer.MAX_VALUE);
+                } else {
+                    ((LoopingMediaSource) mMediaSource).setLoopCount(1);
+                }
+            } else {
+                Log.w(TAG, "setLooping is ineffective for mediaSource " + mMediaSource.getClass().getSimpleName());
+            }
+        }
     }
 
     @Override
