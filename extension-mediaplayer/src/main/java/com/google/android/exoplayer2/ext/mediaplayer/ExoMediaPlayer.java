@@ -147,6 +147,7 @@ public class ExoMediaPlayer implements MediaPlayerInterface {
     private OnVideoSizeChangedListener mOnVideoSizeChangedListener;
     private OnErrorListener mOnErrorListener;
     private OnInfoListener mOnInfoListener;
+    private boolean mLoopingPlaySeek;
 
     public ExoMediaPlayer(Context ctx) {
         mAppContext = ctx;
@@ -228,7 +229,7 @@ public class ExoMediaPlayer implements MediaPlayerInterface {
         }
         if (mIsLooping) {
             Log.v(TAG, "looping play video");
-            mMediaSource = new LoopingMediaSource(mMediaSource);
+//            mMediaSource = new LoopingMediaSource(mMediaSource);
         }
         mExoPlayer.prepare(mMediaSource);
         mExoPlayer.setPlayWhenReady(false);
@@ -391,17 +392,6 @@ public class ExoMediaPlayer implements MediaPlayerInterface {
     @Override
     public void setLooping(boolean looping) {
         mIsLooping = looping;
-        if (mMediaSource != null) { // dynamic change loop setting
-            if (mMediaSource instanceof LoopingMediaSource) {
-                if (mIsLooping) {
-                    ((LoopingMediaSource) mMediaSource).setLoopCount(Integer.MAX_VALUE);
-                } else {
-                    ((LoopingMediaSource) mMediaSource).setLoopCount(1);
-                }
-            } else {
-                Log.w(TAG, "setLooping is ineffective for mediaSource " + mMediaSource.getClass().getSimpleName());
-            }
-        }
     }
 
     @Override
@@ -1054,7 +1044,13 @@ public class ExoMediaPlayer implements MediaPlayerInterface {
             }
 
             if (newState == mStateStore.getState(true, ExoPlayer.STATE_ENDED)) {
-                notifyOnCompletion();
+                if (isLooping()) {
+                    Log.v(TAG, "looping play video seek to beginning");
+                    seekTo(0);
+                    mLoopingPlaySeek = true;
+                } else {
+                    notifyOnCompletion();
+                }
                 return;
             }
 
@@ -1076,7 +1072,11 @@ public class ExoMediaPlayer implements MediaPlayerInterface {
             informSeekCompletion |= mStateStore.matchesHistory(new int[]{StateStore.STATE_SEEKING, ExoPlayer.STATE_READY, ExoPlayer.STATE_BUFFERING, ExoPlayer.STATE_READY}, true);
 
             if (informSeekCompletion) {
-                notifyOnSeekComplete();
+                if (!mLoopingPlaySeek) {
+                    notifyOnSeekComplete();
+                } else {
+                    mLoopingPlaySeek = false;
+                }
                 return;
             }
 
