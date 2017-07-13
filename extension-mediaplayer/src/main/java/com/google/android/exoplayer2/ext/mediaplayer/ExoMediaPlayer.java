@@ -244,6 +244,7 @@ public class ExoMediaPlayer implements MediaPlayerInterface {
         if (!mFirstFrameDecodedEventSent &&
                 mFirstFrameDecoded) {
             notifyOnInfo(MEDIA_INFO_VIDEO_RENDERING_START, 0);
+            mFirstFrameDecodedEventSent = true;
         }
     }
 
@@ -775,7 +776,7 @@ public class ExoMediaPlayer implements MediaPlayerInterface {
         public void onRenderedFirstFrame(Surface surface) {
             Log.d(TAG, "onRenderedFirstFrame");
             if (mExoPlayer != null && ExoMediaPlayer.this.mSurface == surface) {
-                if (mExoPlayer.getPlayWhenReady()) { // avoid preparing -> started
+                if (mExoPlayer.getPlayWhenReady() && !mFirstFrameDecodedEventSent) { // avoid preparing -> started
                     notifyOnInfo(MEDIA_INFO_VIDEO_RENDERING_START, 0);
                     mFirstFrameDecodedEventSent = true;
                 }
