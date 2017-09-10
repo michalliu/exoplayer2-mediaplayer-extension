@@ -188,6 +188,9 @@ public class ExoMediaPlayer implements MediaPlayerInterface {
                 initPlayer();
             }
         });
+        while(mExoPlayer == null) {
+            // ensure mExoPlayer is initialized
+        }
     }
 
     //init player, looper使用自己的
