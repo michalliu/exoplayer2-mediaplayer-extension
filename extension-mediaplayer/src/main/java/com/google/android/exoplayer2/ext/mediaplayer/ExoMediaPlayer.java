@@ -23,6 +23,7 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.SurfaceTexture;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -46,6 +47,9 @@ import com.google.android.exoplayer2.Renderer;
 import com.google.android.exoplayer2.Timeline;
 import com.google.android.exoplayer2.audio.AudioRendererEventListener;
 import com.google.android.exoplayer2.decoder.DecoderCounters;
+import com.google.android.exoplayer2.ext.mediaplayer.DefaultRendererProvider;
+import com.google.android.exoplayer2.ext.mediaplayer.MediaPlayerInterface;
+import com.google.android.exoplayer2.ext.mediaplayer.Repeater;
 import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
 import com.google.android.exoplayer2.mediacodec.MediaCodecRenderer;
 import com.google.android.exoplayer2.metadata.Metadata;
@@ -53,7 +57,6 @@ import com.google.android.exoplayer2.metadata.MetadataRenderer;
 import com.google.android.exoplayer2.source.AdaptiveMediaSourceEventListener;
 import com.google.android.exoplayer2.source.ConcatenatingMediaSource;
 import com.google.android.exoplayer2.source.ExtractorMediaSource;
-import com.google.android.exoplayer2.source.LoopingMediaSource;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.TrackGroupArray;
 import com.google.android.exoplayer2.source.UnrecognizedInputFormatException;
@@ -77,6 +80,7 @@ import com.google.android.exoplayer2.upstream.HttpDataSource;
 import com.google.android.exoplayer2.util.Util;
 import com.google.android.exoplayer2.video.VideoRendererEventListener;
 
+import java.io.FileDescriptor;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -178,17 +182,27 @@ public class ExoMediaPlayer implements MediaPlayerInterface {
                 rendererEventListener);
         mRenderers = rendererProvider.generate();
 
+        mMainHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                initPlayer();
+            }
+        });
+    }
+
+    //init player, looper使用自己的
+    private void initPlayer() {
         //track selection
         TrackSelection.Factory selectionFactory = new AdaptiveTrackSelection.Factory(new DefaultBandwidthMeter());
         DefaultTrackSelector trackSelector = new DefaultTrackSelector(selectionFactory);
         LoadControl loadControl = new DefaultLoadControl();
 
-        //init player
         mExoPlayer = ExoPlayerFactory.newInstance(mRenderers.toArray(new Renderer[mRenderers.size()]),
                 trackSelector, loadControl);
         mExoPlayer.addListener(mExo2EventListener);
     }
 
+    // IMediaPlayer API
     @Override
     public void setDataSource(Context context, Uri uri) throws IOException, IllegalArgumentException, SecurityException, IllegalStateException {
         mMediaSource = buildMediaSource(mAppContext, uri, null);
@@ -207,7 +221,7 @@ public class ExoMediaPlayer implements MediaPlayerInterface {
 
     @Override
     public void setDataSource(Context context, Uri uri, Map<String, String> headers) throws IOException, IllegalArgumentException, SecurityException, IllegalStateException {
-        //TODO: handle headers
+        // TODO: handle headers
         setDataSource(context, uri);
     }
 
@@ -268,11 +282,11 @@ public class ExoMediaPlayer implements MediaPlayerInterface {
     }
 
     @Override
-    public void seekTo(int msec) throws IllegalStateException {
+    public void seekTo(int positionMs) throws IllegalStateException {
         if (mExoPlayer == null) {
             return;
         }
-        mExoPlayer.seekTo(msec);
+        mExoPlayer.seekTo(positionMs);
         mStateStore.setMostRecentState(mStateStore.isLastReportedPlayWhenReady(), StateStore.STATE_SEEKING);
     }
 
@@ -443,7 +457,7 @@ public class ExoMediaPlayer implements MediaPlayerInterface {
         //Acquires the wakelock if we have permissions
         if (context.getPackageManager().checkPermission(Manifest.permission.WAKE_LOCK, context.getPackageName()) == PackageManager.PERMISSION_GRANTED) {
             PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
-            mWakeLock = pm.newWakeLock(mode | PowerManager.ON_AFTER_RELEASE, ExoMediaPlayer.class.getSimpleName());
+            mWakeLock = pm.newWakeLock(mode | PowerManager.ON_AFTER_RELEASE, ExoMediaPlayer.class.getName());
             mWakeLock.setReferenceCounted(false);
         } else {
             Log.w(TAG, "Unable to acquire WAKE_LOCK due to missing manifest permission");
@@ -560,6 +574,15 @@ public class ExoMediaPlayer implements MediaPlayerInterface {
                 mSurface.release();
             }
             sendMessage(C.TRACK_TYPE_VIDEO, C.MSG_SET_SURFACE, surface, true);
+            final long pos = mExoPlayer.getCurrentPosition();
+            if (Util.SDK_INT < 23) { // workaround for switching surface issue #318
+                mMainHandler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        mExoPlayer.seekTo(pos);
+                    }
+                }, 200);
+            }
         } else {
             sendMessage(C.TRACK_TYPE_VIDEO, C.MSG_SET_SURFACE, surface, false);
         }
@@ -776,7 +799,7 @@ public class ExoMediaPlayer implements MediaPlayerInterface {
         public void onRenderedFirstFrame(Surface surface) {
             Log.d(TAG, "onRenderedFirstFrame");
             if (mExoPlayer != null && ExoMediaPlayer.this.mSurface == surface) {
-                if (mExoPlayer.getPlayWhenReady() && !mFirstFrameDecodedEventSent) { // avoid preparing -> started
+                if (mExoPlayer.getPlayWhenReady() && !mFirstFrameDecodedEventSent) { // avoid preparing ---> started
                     notifyOnInfo(MEDIA_INFO_VIDEO_RENDERING_START, 0);
                     mFirstFrameDecodedEventSent = true;
                 }
@@ -787,13 +810,13 @@ public class ExoMediaPlayer implements MediaPlayerInterface {
         @Override
         public void onVideoDisabled(DecoderCounters decoderCounters) {
             Log.d(TAG, "onVideoDisabled");
-            mAudioSessionId = C.AUDIO_SESSION_ID_UNSET;
         }
 
         // AudioRendererEventListener
         @Override
         public void onAudioEnabled(DecoderCounters decoderCounters) {
             Log.d(TAG, "onAudioEnabled");
+            mAudioSessionId = C.AUDIO_SESSION_ID_UNSET;
         }
 
         @Override
@@ -825,7 +848,7 @@ public class ExoMediaPlayer implements MediaPlayerInterface {
 
         @Override
         public void onAudioDisabled(DecoderCounters decoderCounters) {
-            Log.d(TAG, "onAudioDisabled decoderCounters=" + decoderCounters);
+
         }
 
         // MetadataRenderer.Output
@@ -846,7 +869,9 @@ public class ExoMediaPlayer implements MediaPlayerInterface {
         // BufferUpdate Repeater
         @Override
         public void onUpdate() {
-            if (mIsRelease) return;
+            if (mIsRelease) {
+                return;
+            }
             if (mExoPlayer != null) {
                 int state = mExoPlayer.getPlaybackState();
                 switch (state) {
@@ -858,8 +883,8 @@ public class ExoMediaPlayer implements MediaPlayerInterface {
                     case ExoPlayer.STATE_BUFFERING:
                         notifyOnBufferingUpdate(getBufferedPercentage());
                         break;
-//                   default:
-                    // no op
+//                    default:
+                        // no op
                 }
             }
         }
@@ -892,7 +917,7 @@ public class ExoMediaPlayer implements MediaPlayerInterface {
 
         @Override
         public void onPlayerError(ExoPlaybackException error) {
-            if (mExoPlayer != null) { // no error state in exo
+            if (mExoPlayer != null) { // cz no error state
                 setBufferRepeaterStarted(false);
             }
             if (error != null) {
@@ -937,7 +962,7 @@ public class ExoMediaPlayer implements MediaPlayerInterface {
             }
             Log.e(TAG, "ExoPlaybackException " + error + "\n"
                     + ExoMediaPlayerUtils.getPrintableStackTrace(error));
-            Log.i(TAG, ExoMediaPlayerUtils.getLogcatContent());
+            Log.i(TAG, ExoMediaPlayerUtils.getLogcatContent(0, null, 30));
             notifyOnError(EXO_MEDIA_ERROR_WHAT_UNKNOWN, EXO_MEDIA_ERROR_EXTRA_UNKNOWN);
         }
 
@@ -951,11 +976,6 @@ public class ExoMediaPlayer implements MediaPlayerInterface {
             Log.d(TAG, "onPlaybackParametersChanged ["
                     + playbackParameters.speed + "," + playbackParameters.pitch + "]");
         }
-//
-//        @Override
-//        public void onRepeatModeChanged(@ExoPlayer.RepeatMode int repeatMode) {
-//            Log.d(TAG, "onRepeatModeChanged " + repeatMode);
-//        }
     }
 
     // StateStore
@@ -963,6 +983,7 @@ public class ExoMediaPlayer implements MediaPlayerInterface {
         private static final int FLAG_PLAY_WHEN_READY = 0xF0000000;
         private static final int STATE_SEEKING = 100;
 
+        //We keep the last few states because that is all we need currently
         private int[] prevStates = new int[]{
                 ExoPlayer.STATE_IDLE,
                 ExoPlayer.STATE_IDLE,
@@ -981,7 +1002,7 @@ public class ExoMediaPlayer implements MediaPlayerInterface {
             prevStates[0] = prevStates[1];
             prevStates[1] = prevStates[2];
             prevStates[2] = prevStates[3];
-            prevStates[3] = newState;
+            prevStates[3] = newState; // TODO: 原处这里为 state 应该是笔误
             Log.v(TAG, "MostRecentState [" + prevStates[0]
                     + "," + prevStates[1]
                     + "," + prevStates[2]
@@ -1025,6 +1046,7 @@ public class ExoMediaPlayer implements MediaPlayerInterface {
         }
     }
 
+    // reportPlayerState
     private void reportPlayerState() {
         if (mExoPlayer == null || mIsRelease) {
             return;
@@ -1046,7 +1068,7 @@ public class ExoMediaPlayer implements MediaPlayerInterface {
 
             if (newState == mStateStore.getState(true, ExoPlayer.STATE_ENDED)) {
                 if (isLooping()) {
-                    Log.v(TAG, "looping play video seek to beginning");
+                    Log.i(TAG, "looping play video seek to beginning");
                     seekTo(0);
                     mLoopingPlaySeek = true;
                 } else {
@@ -1104,6 +1126,7 @@ public class ExoMediaPlayer implements MediaPlayerInterface {
         }
     }
 
+    //
     private void sendMessage(int renderType, int messageType, Object message) {
         sendMessage(renderType, messageType, message, false);
     }
@@ -1127,6 +1150,7 @@ public class ExoMediaPlayer implements MediaPlayerInterface {
         }
     }
 
+    // buildMediaSource
     private MediaSource buildMediaSource(Context context, Uri uri, String overrideExtension) {
         int type = TextUtils.isEmpty(overrideExtension) ? Util.inferContentType(uri)
                 : Util.inferContentType("." + overrideExtension);
@@ -1149,6 +1173,7 @@ public class ExoMediaPlayer implements MediaPlayerInterface {
         }
     }
 
+    // Utils
     private DataSource.Factory buildDataSourceFactory(boolean useBandwidthMeter, String userAgent) {
         return buildDataSourceFactory(useBandwidthMeter ? BANDWIDTH_METER : null, userAgent);
     }
@@ -1218,6 +1243,7 @@ public class ExoMediaPlayer implements MediaPlayerInterface {
         int decoderType = TYPE_UNKNOWN; //
         String decoderName = "";
 
+        long initializedTimestampMs = 0;
         long initializationDurationMs = 0;
 
         DecoderInfo(int decoderType, String decoderName, long initializationDurationMs) {
@@ -1240,8 +1266,8 @@ public class ExoMediaPlayer implements MediaPlayerInterface {
         @Override
         public String toString() {
             return type2Str(decoderType)
-                    + ": " + decoderName
-                    + "," + initializationDurationMs;
+                        + ": " + decoderName
+                        + "," + initializationDurationMs;
         }
     }
 }
