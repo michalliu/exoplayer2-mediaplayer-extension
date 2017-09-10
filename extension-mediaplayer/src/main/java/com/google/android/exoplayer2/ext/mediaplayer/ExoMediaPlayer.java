@@ -185,11 +185,21 @@ public class ExoMediaPlayer implements MediaPlayerInterface {
         mMainHandler.post(new Runnable() {
             @Override
             public void run() {
-                initPlayer();
+                synchronized (ExoMediaPlayer.this) {
+                    initPlayer();
+                    ExoMediaPlayer.this.notifyAll();
+                }
             }
         });
-        while(mExoPlayer == null) {
-            // ensure mExoPlayer is initialized
+        
+        synchronized (this) {
+            while(mExoPlayer == null) {
+                try {
+                    wait();
+                } catch (InterruptedException ex) {
+                    Thread.currentThread().interrupt();
+                }
+            }
         }
     }
 
