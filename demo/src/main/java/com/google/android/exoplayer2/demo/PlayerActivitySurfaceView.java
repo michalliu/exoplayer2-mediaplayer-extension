@@ -81,7 +81,7 @@ public class PlayerActivitySurfaceView extends Activity implements
         Log.d(TAG, "onPrepared");
         mMediaPlayer.start();
         mSeekBar.setMax((int) mMediaPlayer.getDuration());
-        mVideoDurationView.setText(String.valueOf(mMediaPlayer.getDuration()));
+        updateDuration();
         refreshProgressbarLoop();
         updatePlayStatus();
     }
@@ -172,12 +172,26 @@ public class PlayerActivitySurfaceView extends Activity implements
         updatePlayStatus();
     }
 
+    private void updateDuration() {
+        mMainHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                mVideoDurationView.setText(String.valueOf(mMediaPlayer.getDuration()));
+            }
+        });
+    }
+    
     private void updatePlayStatus() {
-        if (mMediaPlayer != null && mMediaPlayer.isPlaying()) {
-            mPlayPauseButton.setImageResource(android.R.drawable.ic_media_pause);
-        } else {
-            mPlayPauseButton.setImageResource(android.R.drawable.ic_media_play);
-        }
+        mMainHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                if (mMediaPlayer != null && mMediaPlayer.isPlaying()) {
+                    mPlayPauseButton.setImageResource(android.R.drawable.ic_media_pause);
+                } else {
+                    mPlayPauseButton.setImageResource(android.R.drawable.ic_media_play);
+                }
+            }
+        });
     }
 
     private void refreshProgressbarLoop() {
