@@ -582,7 +582,7 @@ public class ExoMediaPlayer implements MediaPlayerInterface {
             Log.w(TAG, "call setVideoSurfaceInternal after release");
             return;
         }
-        if (mSurface != null && mSurface != surface) {
+        if (mSurface != null && mSurface != surface && surface != null) {
             if (mOwnsSurface) {
                 mSurface.release();
             }
