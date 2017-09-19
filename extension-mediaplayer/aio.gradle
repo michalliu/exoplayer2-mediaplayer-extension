@@ -1,0 +1,16 @@
+apply plugin: 'com.android.library'
+
+android {
+}
+
+hello { task ->
+    println "$task.project.name " +  "-> okay!"
+}
+
+dependencies {
+    compile project(':exoplayer2-library-core')
+//    compile project(':exoplayer2-library-dash')
+    compile project(':exoplayer2-library-hls')
+//    compile project(':exoplayer2-library-smoothstreaming')
+//    compile project(':exoplayer2-library-ui')
+}
