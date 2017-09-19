@@ -47,9 +47,6 @@ import com.google.android.exoplayer2.Renderer;
 import com.google.android.exoplayer2.Timeline;
 import com.google.android.exoplayer2.audio.AudioRendererEventListener;
 import com.google.android.exoplayer2.decoder.DecoderCounters;
-import com.google.android.exoplayer2.ext.mediaplayer.DefaultRendererProvider;
-import com.google.android.exoplayer2.ext.mediaplayer.MediaPlayerInterface;
-import com.google.android.exoplayer2.ext.mediaplayer.Repeater;
 import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
 import com.google.android.exoplayer2.mediacodec.MediaCodecRenderer;
 import com.google.android.exoplayer2.metadata.Metadata;
@@ -60,11 +57,11 @@ import com.google.android.exoplayer2.source.ExtractorMediaSource;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.TrackGroupArray;
 import com.google.android.exoplayer2.source.UnrecognizedInputFormatException;
-import com.google.android.exoplayer2.source.dash.DashMediaSource;
-import com.google.android.exoplayer2.source.dash.DefaultDashChunkSource;
+//import com.google.android.exoplayer2.source.dash.DashMediaSource;
+//import com.google.android.exoplayer2.source.dash.DefaultDashChunkSource;
 import com.google.android.exoplayer2.source.hls.HlsMediaSource;
-import com.google.android.exoplayer2.source.smoothstreaming.DefaultSsChunkSource;
-import com.google.android.exoplayer2.source.smoothstreaming.SsMediaSource;
+//import com.google.android.exoplayer2.source.smoothstreaming.DefaultSsChunkSource;
+//import com.google.android.exoplayer2.source.smoothstreaming.SsMediaSource;
 import com.google.android.exoplayer2.text.Cue;
 import com.google.android.exoplayer2.text.TextRenderer;
 import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection;
@@ -1169,12 +1166,12 @@ public class ExoMediaPlayer implements MediaPlayerInterface {
                 : Util.inferContentType("." + overrideExtension);
         String userAgent = Util.getUserAgent(context, "ExoMediaPlayer");
         switch (type) {
-            case C.TYPE_SS:
-                return new SsMediaSource(uri, buildDataSourceFactory(false, userAgent),
-                        new DefaultSsChunkSource.Factory(buildDataSourceFactory(false, userAgent)), mMainHandler, mMediaSourceEventListener);
-            case C.TYPE_DASH:
-                return new DashMediaSource(uri, buildDataSourceFactory(false, userAgent),
-                        new DefaultDashChunkSource.Factory(buildDataSourceFactory(false, userAgent)), mMainHandler, mMediaSourceEventListener);
+//            case C.TYPE_SS:
+//                return new SsMediaSource(uri, buildDataSourceFactory(false, userAgent),
+//                        new DefaultSsChunkSource.Factory(buildDataSourceFactory(false, userAgent)), mMainHandler, mMediaSourceEventListener);
+//            case C.TYPE_DASH:
+//                return new DashMediaSource(uri, buildDataSourceFactory(false, userAgent),
+//                        new DefaultDashChunkSource.Factory(buildDataSourceFactory(false, userAgent)), mMainHandler, mMediaSourceEventListener);
             case C.TYPE_HLS:
                 return new HlsMediaSource(uri, buildDataSourceFactory(BANDWIDTH_METER, userAgent), mMainHandler, mMediaSourceEventListener);
             case C.TYPE_OTHER:
