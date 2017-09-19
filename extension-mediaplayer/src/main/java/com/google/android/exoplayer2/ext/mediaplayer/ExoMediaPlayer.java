@@ -43,6 +43,7 @@ import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.Format;
 import com.google.android.exoplayer2.LoadControl;
 import com.google.android.exoplayer2.PlaybackParameters;
+import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.Renderer;
 import com.google.android.exoplayer2.Timeline;
 import com.google.android.exoplayer2.audio.AudioRendererEventListener;
@@ -985,6 +986,11 @@ public class ExoMediaPlayer implements MediaPlayerInterface {
         public void onPlaybackParametersChanged(PlaybackParameters playbackParameters) {
             Log.d(TAG, "onPlaybackParametersChanged ["
                     + playbackParameters.speed + "," + playbackParameters.pitch + "]");
+        }
+
+        @Override
+        public void onRepeatModeChanged(@Player.RepeatMode int repeatMode) {
+            Log.d(TAG, "onRepeatModeChanged " + repeatMode);
         }
     }
 
