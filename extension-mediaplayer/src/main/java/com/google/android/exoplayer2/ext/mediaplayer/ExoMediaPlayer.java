@@ -780,8 +780,8 @@ public class ExoMediaPlayer implements MediaPlayerInterface {
         @Override
         public void onVideoDecoderInitialized(String decoderName, long initializedTimestampMs, long initializationDurationMs) {
             Log.d(TAG, "onAudioDecoderInitialized decoderName=" + decoderName
-                    +",initializedTimestampMs" + initializedTimestampMs
-                    +",initializationDurationMs" + initializationDurationMs);
+                    +",initializedTimestampMs=" + initializedTimestampMs
+                    +",initializationDurationMs=" + initializationDurationMs);
             mVideoDecoderInfo = new DecoderInfo(DecoderInfo.TYPE_VIDEO, decoderName, initializationDurationMs);
         }
 
@@ -851,7 +851,7 @@ public class ExoMediaPlayer implements MediaPlayerInterface {
         }
 
         @Override
-        public void onAudioTrackUnderrun(int bufferSize, long bufferSizeMs, long elapsedSinceLastFeedMs) {
+        public void onAudioSinkUnderrun(int bufferSize, long bufferSizeMs, long elapsedSinceLastFeedMs) {
             Log.d(TAG, "onAudioTrackUnderrun bufferSize=" + bufferSize
                     + ",bufferSizeMs" + bufferSizeMs
                     + ",elapsedSinceLastFeedMs" + elapsedSinceLastFeedMs);
@@ -978,8 +978,18 @@ public class ExoMediaPlayer implements MediaPlayerInterface {
         }
 
         @Override
-        public void onPositionDiscontinuity() {
-            Log.d(TAG, "onPositionDiscontinuity");
+        public void onPositionDiscontinuity(int reason) {
+            Log.d(TAG, "onPositionDiscontinuity reason=" + reason);
+        }
+
+        @Override
+        public void onShuffleModeEnabledChanged(boolean shuffleModeEnabled) {
+            Log.d(TAG, "onShuffleModeEnabledChanged shuffleModeEnabled=" + shuffleModeEnabled);
+        }
+
+        @Override
+        public void onSeekProcessed() {
+            Log.d(TAG, "onSeekProcessed");
         }
 
         @Override
