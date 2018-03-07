@@ -395,7 +395,7 @@ public class ExoMediaPlayer implements MediaPlayerInterface {
             case ExoPlayer.STATE_ENDED:
                 // current looping implementation has may trigger ENDED STATE
                 // we should reimplement looping feature by exoplayer's standard
-                if (mIsLooping) return true;
+                if (mIsLooping && state == ExoPlayer.STATE_ENDED) return true;
             default:
                 return false;
         }
