@@ -908,8 +908,8 @@ public class ExoMediaPlayer implements MediaPlayerInterface {
             ExoPlayer.EventListener  {
         // ExoPlayer.EventListener
         @Override
-        public void onTimelineChanged(Timeline timeline, Object manifest) {
-            Log.d(TAG, "onTimelineChanged");
+        public void onTimelineChanged(Timeline timeline, Object manifest, int reason) {
+            Log.d(TAG, "onTimelineChanged reason=" + reason);
         }
 
         @Override
