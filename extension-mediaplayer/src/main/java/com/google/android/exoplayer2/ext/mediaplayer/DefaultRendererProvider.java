@@ -96,7 +96,7 @@ public class DefaultRendererProvider implements RendererProvider {
 
     protected List<Renderer> buildVideoRenderers() {
         List<Renderer> renderers = new ArrayList<>();
-        renderers.add(new LibvpxVideoRenderer(true, allowedJoiningTimeMs, handler, videoRendererEventListener, droppedFrameNotificationAmount, null, false));
+        renderers.add(new LibvpxVideoRenderer(true, allowedJoiningTimeMs, handler, videoRendererEventListener, droppedFrameNotificationAmount, null, false, true));
         renderers.add(new MediaCodecVideoRenderer(context, MediaCodecSelector.DEFAULT, allowedJoiningTimeMs, drmSessionManager, false, handler, videoRendererEventListener, droppedFrameNotificationAmount));
 
         return renderers;
