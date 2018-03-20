@@ -1192,10 +1192,14 @@ public class ExoMediaPlayer implements MediaPlayerInterface {
 //                return new DashMediaSource(uri, buildDataSourceFactory(false, userAgent),
 //                        new DefaultDashChunkSource.Factory(buildDataSourceFactory(false, userAgent)), mMainHandler, mMediaSourceEventListener);
             case C.TYPE_HLS:
-                return new HlsMediaSource(uri, buildDataSourceFactory(BANDWIDTH_METER, userAgent), mMainHandler, mMediaSourceEventListener);
+                HlsMediaSource.Factory hlsFactory = new HlsMediaSource.Factory(buildDataSourceFactory(BANDWIDTH_METER, userAgent));
+                return hlsFactory.createMediaSource(uri, mMainHandler, mMediaSourceEventListener);
+//                return new HlsMediaSource(uri, buildDataSourceFactory(BANDWIDTH_METER, userAgent), mMainHandler, mMediaSourceEventListener);
             case C.TYPE_OTHER:
-                return new ExtractorMediaSource(uri, buildDataSourceFactory(BANDWIDTH_METER, userAgent), new DefaultExtractorsFactory(),
-                        mMainHandler, mMediaSourceEventListener);
+                ExtractorMediaSource.Factory extractorFactory= new ExtractorMediaSource.Factory(buildDataSourceFactory(BANDWIDTH_METER, userAgent));
+                return extractorFactory.createMediaSource(uri, mMainHandler, mMediaSourceEventListener);
+//                return new ExtractorMediaSource(uri, buildDataSourceFactory(BANDWIDTH_METER, userAgent), new DefaultExtractorsFactory(),
+//                        mMainHandler, mMediaSourceEventListener);
             default: {
                 throw new IllegalStateException("Unsupported type: " + type);
             }
