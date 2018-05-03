@@ -23,7 +23,6 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.SurfaceTexture;
-import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -36,7 +35,6 @@ import android.view.SurfaceView;
 import android.view.TextureView;
 
 import com.google.android.exoplayer2.C;
-import com.google.android.exoplayer2.DefaultLoadControl;
 import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.ExoPlayerFactory;
@@ -48,7 +46,6 @@ import com.google.android.exoplayer2.Renderer;
 import com.google.android.exoplayer2.Timeline;
 import com.google.android.exoplayer2.audio.AudioRendererEventListener;
 import com.google.android.exoplayer2.decoder.DecoderCounters;
-import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
 import com.google.android.exoplayer2.mediacodec.MediaCodecRenderer;
 import com.google.android.exoplayer2.metadata.Metadata;
 import com.google.android.exoplayer2.metadata.MetadataRenderer;
@@ -78,7 +75,6 @@ import com.google.android.exoplayer2.upstream.HttpDataSource;
 import com.google.android.exoplayer2.util.Util;
 import com.google.android.exoplayer2.video.VideoRendererEventListener;
 
-import java.io.FileDescriptor;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -206,7 +202,7 @@ public class ExoMediaPlayer implements MediaPlayerInterface {
         //track selection
         TrackSelection.Factory selectionFactory = new AdaptiveTrackSelection.Factory(new DefaultBandwidthMeter());
         DefaultTrackSelector trackSelector = new DefaultTrackSelector(selectionFactory);
-        LoadControl loadControl = new DefaultLoadControl();
+        LoadControl loadControl = new QLoadControl();
 
         mExoPlayer = ExoPlayerFactory.newInstance(mRenderers.toArray(new Renderer[mRenderers.size()]),
                 trackSelector, loadControl);
@@ -855,7 +851,7 @@ public class ExoMediaPlayer implements MediaPlayerInterface {
 
         @Override
         public void onAudioSinkUnderrun(int bufferSize, long bufferSizeMs, long elapsedSinceLastFeedMs) {
-            Log.d(TAG, "onAudioTrackUnderrun bufferSize=" + bufferSize
+            Log.d(TAG, "onAudioSinkUnderrun bufferSize=" + bufferSize
                     + ",bufferSizeMs" + bufferSizeMs
                     + ",elapsedSinceLastFeedMs" + elapsedSinceLastFeedMs);
         }
