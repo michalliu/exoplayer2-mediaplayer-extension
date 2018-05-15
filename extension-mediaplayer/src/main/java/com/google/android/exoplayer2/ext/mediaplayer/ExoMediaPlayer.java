@@ -1263,6 +1263,21 @@ public class ExoMediaPlayer implements MediaPlayerInterface {
         return mOnInfoListener != null && mOnInfoListener.onInfo(this, what, extra);
     }
 
+    // 流控参数配置样例
+    public static final String DEFAULT_LC_SAMPLE_CONFIG = "65536,15000,30000,2000,5000";
+
+    // 修改流控参数配置
+    public static void updateLoadControlConfig(QLoadControl.Config config) {
+        Log.d(TAG, "updateLoadControlConfig " + config);
+        QLoadControl.updateConfig(config);
+    }
+
+    // 修改流控参数配置，支持字符串
+    public static void updateLoadControlConfig(String configStr) {
+        Log.d(TAG, "updateLoadControlConfig " + configStr);
+        QLoadControl.updateConfig(configStr);
+    }
+
     // DecoderInfo
     private static class DecoderInfo {
         static final int TYPE_VIDEO = 0;

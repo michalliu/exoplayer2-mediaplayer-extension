@@ -12,7 +12,7 @@ import com.google.android.exoplayer2.upstream.DefaultAllocator;
  * Created by leoliu on 17/5/3.
  */
 
-public class QLoadControl extends DefaultLoadControl {
+/* 内部使用，接口由 ExoMediaPlayer暴露 */ class QLoadControl extends DefaultLoadControl {
     public static final String LOG_TAG = "QLoadControl";
 
     private static int sBufferSegmentSize = C.DEFAULT_BUFFER_SEGMENT_SIZE;
@@ -21,11 +21,8 @@ public class QLoadControl extends DefaultLoadControl {
     private static int sBufferForPlaybackMs = DEFAULT_BUFFER_FOR_PLAYBACK_MS;
     private static int sBufferForPlaybackRebufferMs = DEFAULT_BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS;
 
-    // 流控参数配置样例
-    public static final String DEFAULT_LC_SAMPLE_CONFIG = "65536,15000,30000,2000,5000";
-
     // 修改流控参数配置
-    public static void updateConfig(Config config) {
+    static void updateConfig(Config config) {
         if (config == null) {
             Log.v(LOG_TAG, "updateConfig config null");
             return;
@@ -39,7 +36,7 @@ public class QLoadControl extends DefaultLoadControl {
     }
 
     // 修改流控参数配置，支持字符串配置
-    public static void updateConfig(String configStr) {
+    static void updateConfig(String configStr) {
         Log.v(LOG_TAG, "updateConfig configStr=" + configStr);
         String[] configs = configStr.split(",");
         QLoadControl.Config config = new QLoadControl.Config();
