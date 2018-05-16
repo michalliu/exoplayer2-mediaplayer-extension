@@ -8,6 +8,11 @@ hello { task ->
 }
 
 dependencies {
+//  using code from maven
+//  compile 'com.google.android.exoplayer:exoplayer-core:2.7.1'
+//  compile 'com.google.android.exoplayer:exoplayer-hls:2.7.1'
+
+//  using code from local
     compile project(':exoplayer2-library-core')
 //    compile project(':exoplayer2-library-dash')
     compile project(':exoplayer2-library-hls')
