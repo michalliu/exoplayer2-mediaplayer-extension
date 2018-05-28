@@ -65,7 +65,7 @@ public interface MediaPlayerInterface {
 
     void pause() throws IllegalStateException;
 
-    void seekTo(int msec) throws IllegalStateException;
+    void seekTo(long msec) throws IllegalStateException;
 
     void reset();
 

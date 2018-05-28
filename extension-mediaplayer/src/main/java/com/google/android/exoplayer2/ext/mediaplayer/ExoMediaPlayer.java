@@ -289,7 +289,7 @@ public class ExoMediaPlayer implements MediaPlayerInterface {
     }
 
     @Override
-    public void seekTo(int positionMs) throws IllegalStateException {
+    public void seekTo(long positionMs) throws IllegalStateException {
         if (mExoPlayer == null) {
             return;
         }
