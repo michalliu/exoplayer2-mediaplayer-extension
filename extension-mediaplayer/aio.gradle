@@ -3,10 +3,6 @@ apply plugin: 'com.android.library'
 android {
 }
 
-hello { task ->
-    println "$task.project.name " +  "-> okay!"
-}
-
 dependencies {
 //  using code from maven
 //  compile 'com.google.android.exoplayer:exoplayer-core:2.7.1'
