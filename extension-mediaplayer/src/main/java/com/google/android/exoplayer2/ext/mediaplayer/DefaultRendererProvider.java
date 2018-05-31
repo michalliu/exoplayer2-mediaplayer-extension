@@ -27,6 +27,7 @@ import com.google.android.exoplayer2.audio.AudioRendererEventListener;
 import com.google.android.exoplayer2.audio.MediaCodecAudioRenderer;
 import com.google.android.exoplayer2.drm.DrmSessionManager;
 import com.google.android.exoplayer2.drm.FrameworkMediaCrypto;
+import com.google.android.exoplayer2.ext.hevc.LibHevcVideoRenderer;
 import com.google.android.exoplayer2.ext.vp9.LibvpxVideoRenderer;
 import com.google.android.exoplayer2.mediacodec.MediaCodecSelector;
 import com.google.android.exoplayer2.metadata.MetadataDecoderFactory;
@@ -95,9 +96,9 @@ public class DefaultRendererProvider implements RendererProvider {
 
     protected List<Renderer> buildVideoRenderers() {
         List<Renderer> renderers = new ArrayList<>();
+        renderers.add(new LibHevcVideoRenderer(true, allowedJoiningTimeMs, handler, videoRendererEventListener, droppedFrameNotificationAmount, null, false, true));
         renderers.add(new LibvpxVideoRenderer(true, allowedJoiningTimeMs, handler, videoRendererEventListener, droppedFrameNotificationAmount, null, false, true));
         renderers.add(new MediaCodecVideoRenderer(context, MediaCodecSelector.DEFAULT, allowedJoiningTimeMs, drmSessionManager, false, handler, videoRendererEventListener, droppedFrameNotificationAmount));
-
         return renderers;
     }
 
