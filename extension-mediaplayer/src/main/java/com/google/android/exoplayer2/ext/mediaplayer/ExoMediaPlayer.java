@@ -47,6 +47,7 @@ import com.google.android.exoplayer2.Timeline;
 import com.google.android.exoplayer2.audio.AudioRendererEventListener;
 import com.google.android.exoplayer2.decoder.DecoderCounters;
 import com.google.android.exoplayer2.mediacodec.MediaCodecRenderer;
+import com.google.android.exoplayer2.mediacodec.MediaCodecUtil;
 import com.google.android.exoplayer2.metadata.Metadata;
 import com.google.android.exoplayer2.metadata.MetadataRenderer;
 import com.google.android.exoplayer2.source.AdaptiveMediaSourceEventListener;
@@ -146,6 +147,15 @@ public class ExoMediaPlayer implements MediaPlayerInterface {
     private OnErrorListener mOnErrorListener;
     private OnInfoListener mOnInfoListener;
     private boolean mLoopingPlaySeek;
+
+    static {
+        try {
+            MediaCodecUtil.getDecoderInfo("video/hevc", false);
+            MediaCodecUtil.getDecoderInfo("video/avc", false);
+        } catch (MediaCodecUtil.DecoderQueryException ex) {
+            ex.printStackTrace(); // ignore
+        }
+    }
 
     public ExoMediaPlayer(Context ctx) {
         mAppContext = ctx;
