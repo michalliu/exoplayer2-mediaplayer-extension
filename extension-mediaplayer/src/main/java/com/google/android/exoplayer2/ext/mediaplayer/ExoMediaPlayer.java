@@ -152,6 +152,7 @@ public class ExoMediaPlayer implements MediaPlayerInterface {
         try {
             MediaCodecUtil.getDecoderInfo("video/hevc", false);
             MediaCodecUtil.getDecoderInfo("video/avc", false);
+            MediaCodecUtil.getDecoderInfo("audio/mp4a-latm", false); // aac
         } catch (MediaCodecUtil.DecoderQueryException ex) {
             ex.printStackTrace(); // ignore
         }
@@ -1209,6 +1210,7 @@ public class ExoMediaPlayer implements MediaPlayerInterface {
 //                return new HlsMediaSource(uri, buildDataSourceFactory(BANDWIDTH_METER, userAgent), mMainHandler, mMediaSourceEventListener);
             case C.TYPE_OTHER:
                 ExtractorMediaSource.Factory extractorFactory= new ExtractorMediaSource.Factory(buildDataSourceFactory(BANDWIDTH_METER, userAgent));
+                extractorFactory.setContinueLoadingCheckIntervalBytes(ExtractorMediaSource.DEFAULT_LOADING_CHECK_INTERVAL_BYTES * 2);
                 return extractorFactory.createMediaSource(uri, mMainHandler, mMediaSourceEventListener);
 //                return new ExtractorMediaSource(uri, buildDataSourceFactory(BANDWIDTH_METER, userAgent), new DefaultExtractorsFactory(),
 //                        mMainHandler, mMediaSourceEventListener);
