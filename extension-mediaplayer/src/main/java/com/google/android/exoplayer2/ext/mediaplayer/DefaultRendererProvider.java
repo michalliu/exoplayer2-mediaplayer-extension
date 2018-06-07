@@ -80,8 +80,9 @@ public class DefaultRendererProvider implements RendererProvider {
 
         renderers.addAll(buildAudioRenderers());
         renderers.addAll(buildVideoRenderers());
-        renderers.addAll(buildCaptionRenderers());
-        renderers.addAll(buildMetadataRenderers());
+// remove unnecessary render to save time
+//        renderers.addAll(buildCaptionRenderers());
+//        renderers.addAll(buildMetadataRenderers());
 
         return renderers;
     }
