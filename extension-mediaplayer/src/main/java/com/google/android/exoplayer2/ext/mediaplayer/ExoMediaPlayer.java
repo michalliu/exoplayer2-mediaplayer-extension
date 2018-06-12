@@ -878,6 +878,16 @@ public class ExoMediaPlayer implements MediaPlayerInterface {
 
         }
 
+        @Override
+        public boolean isNeedAudioData() {
+            return false;
+        }
+
+        @Override
+        public void onRenderAudioData(byte[] audioData) {
+            Log.d(TAG, "onRenderAudioData " + audioData.length);
+        }
+
         // MetadataRenderer.Output
         @Override
         public void onMetadata(Metadata metadata) {
