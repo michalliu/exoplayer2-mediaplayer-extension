@@ -147,7 +147,7 @@ public class ExoMediaPlayer implements MediaPlayerInterface {
     private OnErrorListener mOnErrorListener;
     private OnInfoListener mOnInfoListener;
 
-    private AudioRendererEventListener mAudioRendererEventListener;
+    private AudioEventListener mAudioEventListener;
 
     private boolean mLoopingPlaySeek;
 
@@ -537,8 +537,8 @@ public class ExoMediaPlayer implements MediaPlayerInterface {
         mOnInfoListener = listener;
     }
 
-    public void setAudioRendererEventListener(AudioRendererEventListener listener) {
-        mAudioRendererEventListener = listener;
+    public void setAudioEventListener(AudioEventListener listener) {
+        mAudioEventListener = listener;
     }
 
     // clear surface the player is rendering else do nothing
@@ -887,14 +887,14 @@ public class ExoMediaPlayer implements MediaPlayerInterface {
 
         @Override
         public boolean isNeedAudioData() {
-            return mAudioRendererEventListener != null;
+            return mAudioEventListener != null;
         }
 
         @Override
         public void onRenderAudioData(byte[] audioData) {
             Log.v(TAG, "onRenderAudioData " + audioData.length);
-            if (mAudioRendererEventListener != null) {
-                mAudioRendererEventListener.onRenderAudioData(audioData);
+            if (mAudioEventListener != null) {
+                mAudioEventListener.onRenderAudioData(audioData);
             }
         }
 

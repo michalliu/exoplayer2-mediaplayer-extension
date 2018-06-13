@@ -144,4 +144,11 @@ public interface MediaPlayerInterface {
     interface OnInfoListener {
         boolean onInfo(MediaPlayerInterface mp, int what, int extra);
     }
+
+    /**
+     * Optional Listeners
+     */
+    interface AudioEventListener {
+        void onRenderAudioData(final byte[] audioData);
+    }
 }
