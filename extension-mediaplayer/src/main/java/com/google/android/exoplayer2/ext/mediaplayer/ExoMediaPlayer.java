@@ -46,6 +46,7 @@ import com.google.android.exoplayer2.Renderer;
 import com.google.android.exoplayer2.Timeline;
 import com.google.android.exoplayer2.audio.AudioRendererEventListener;
 import com.google.android.exoplayer2.decoder.DecoderCounters;
+import com.google.android.exoplayer2.ext.audio.AudioFrameManager;
 import com.google.android.exoplayer2.mediacodec.MediaCodecRenderer;
 import com.google.android.exoplayer2.mediacodec.MediaCodecUtil;
 import com.google.android.exoplayer2.metadata.Metadata;
@@ -86,7 +87,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @TargetApi(16)
-public class ExoMediaPlayer implements MediaPlayerInterface {
+public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
     private static final String TAG = "ExoMediaPlayer";
     private static final String HANDLER_THREAD_NAME = "SimpleExoMediaPlayer_HandlerThread";
     private static final int BUFFER_REPEAT_DELAY = 1000;
@@ -134,6 +135,7 @@ public class ExoMediaPlayer implements MediaPlayerInterface {
 
     private boolean mFirstFrameDecoded = false;
     private boolean mFirstFrameDecodedEventSent = false;
+    private boolean mCalculateAudioLevel = false;
 
     private DecoderInfo mVideoDecoderInfo;
     private DecoderInfo mAudioDecoderInfo;
@@ -151,6 +153,10 @@ public class ExoMediaPlayer implements MediaPlayerInterface {
     private OnInfoListener mOnInfoListener;
 
     private AudioEventListener mAudioEventListener;
+    private AudioFrameManager mAudioFrameManager;
+
+    private double mLastAudioLevelDuration = C.LENGTH_UNSET;
+    private double mLastAudioLevelEnergy = C.LENGTH_UNSET;
 
     private boolean mLoopingPlaySeek;
 
@@ -430,6 +436,41 @@ public class ExoMediaPlayer implements MediaPlayerInterface {
     public void setRate(float rate) {
         PlaybackParameters params = new PlaybackParameters(rate, rate);
         mExoPlayer.setPlaybackParameters(params);
+    }
+
+    @Override
+    public void setCalculateAudioLevel(boolean isNeedAudioLevel) {
+        mCalculateAudioLevel = isNeedAudioLevel;
+    }
+
+    @Override
+    public double getAudioLevel() {
+        double level = 0d;
+        if (mAudioFrameManager != null) {
+            double duration = mAudioFrameManager.getDuration() - mLastAudioLevelDuration;
+            if (duration > 0) {
+                level =  Math.sqrt((mAudioFrameManager.getAudioEnergy() - mLastAudioLevelEnergy) / duration);
+            }
+            mLastAudioLevelDuration = mAudioFrameManager.getDuration();
+            mLastAudioLevelEnergy = mAudioFrameManager.getAudioEnergy();
+        }
+        return level;
+    }
+
+    @Override
+    public double getAudioDuration() {
+        if (mAudioFrameManager != null) {
+            return mAudioFrameManager.getDuration();
+        }
+        return 0d;
+    }
+
+    @Override
+    public double getAudioEnergy() {
+        if (mAudioFrameManager != null) {
+            return mAudioFrameManager.getAudioEnergy();
+        }
+        return 0d;
     }
 
     @Override
@@ -890,12 +931,18 @@ public class ExoMediaPlayer implements MediaPlayerInterface {
 
         @Override
         public boolean isNeedAudioData() {
-            return mAudioEventListener != null;
+            return mAudioEventListener != null || mCalculateAudioLevel;
         }
 
         @Override
         public void onRenderAudioData(byte[] audioData) {
             Log.v(TAG, "onRenderAudioData " + audioData.length);
+            if (mCalculateAudioLevel && mAudioFrameManager == null) {
+                mAudioFrameManager = new AudioFrameManager();
+            }
+            if (mAudioFrameManager != null) {
+                mAudioFrameManager.feedAudioData(audioData, mAudioFormat);
+            }
             if (mAudioEventListener != null) {
                 mAudioEventListener.onRenderAudioData(audioData, mAudioFormat);
             }
