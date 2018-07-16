@@ -23,6 +23,8 @@ import android.net.Uri;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 
+import com.google.android.exoplayer2.Format;
+
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -149,6 +151,6 @@ public interface MediaPlayerInterface {
      * Optional Listeners
      */
     interface AudioEventListener {
-        void onRenderAudioData(final byte[] audioData);
+        void onRenderAudioData(final byte[] audioData, Format audioFormat);
     }
 }

@@ -76,6 +76,9 @@ import com.google.android.exoplayer2.upstream.HttpDataSource;
 import com.google.android.exoplayer2.util.Util;
 import com.google.android.exoplayer2.video.VideoRendererEventListener;
 
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -894,7 +897,7 @@ public class ExoMediaPlayer implements MediaPlayerInterface {
         public void onRenderAudioData(byte[] audioData) {
             Log.v(TAG, "onRenderAudioData " + audioData.length);
             if (mAudioEventListener != null) {
-                mAudioEventListener.onRenderAudioData(audioData);
+                mAudioEventListener.onRenderAudioData(audioData, mAudioFormat);
             }
         }
 
