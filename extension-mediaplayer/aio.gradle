@@ -9,9 +9,9 @@ dependencies {
 //  compile 'com.google.android.exoplayer:exoplayer-hls:2.7.1'
 
 //  using code from local
-    compile project(':exoplayer2-library-core')
+    implementation project(':exoplayer2-library-core')
 //    compile project(':exoplayer2-library-dash')
-    compile project(':exoplayer2-library-hls')
+    implementation project(':exoplayer2-library-hls')
 //    compile project(':exoplayer2-library-smoothstreaming')
 //    compile project(':exoplayer2-library-ui')
 //    compile project(':exoplayer2-extension-vp9')
