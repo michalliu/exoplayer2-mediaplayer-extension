@@ -327,6 +327,7 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
 
             if (mExoPlayer != null) {
                 mExoPlayer.stop();
+                mExoPlayer.setPlayWhenReady(false);
             }
             mIsLooping = false;
             mFirstFrameDecoded = false;
