@@ -57,11 +57,7 @@ import com.google.android.exoplayer2.source.ExtractorMediaSource;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.TrackGroupArray;
 import com.google.android.exoplayer2.source.UnrecognizedInputFormatException;
-//import com.google.android.exoplayer2.source.dash.DashMediaSource;
-//import com.google.android.exoplayer2.source.dash.DefaultDashChunkSource;
 import com.google.android.exoplayer2.source.hls.HlsMediaSource;
-//import com.google.android.exoplayer2.source.smoothstreaming.DefaultSsChunkSource;
-//import com.google.android.exoplayer2.source.smoothstreaming.SsMediaSource;
 import com.google.android.exoplayer2.text.Cue;
 import com.google.android.exoplayer2.text.TextRenderer;
 import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection;
@@ -77,14 +73,21 @@ import com.google.android.exoplayer2.upstream.HttpDataSource;
 import com.google.android.exoplayer2.util.Util;
 import com.google.android.exoplayer2.video.VideoRendererEventListener;
 
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+//import com.google.android.exoplayer2.source.dash.DashMediaSource;
+//import com.google.android.exoplayer2.source.dash.DefaultDashChunkSource;
+//import com.google.android.exoplayer2.source.smoothstreaming.DefaultSsChunkSource;
+//import com.google.android.exoplayer2.source.smoothstreaming.SsMediaSource;
+
+//import com.google.android.exoplayer2.source.dash.DashMediaSource;
+//import com.google.android.exoplayer2.source.dash.DefaultDashChunkSource;
+//import com.google.android.exoplayer2.source.smoothstreaming.DefaultSsChunkSource;
+//import com.google.android.exoplayer2.source.smoothstreaming.SsMediaSource;
 
 @TargetApi(16)
 public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
@@ -1277,13 +1280,10 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
             case C.TYPE_HLS:
                 HlsMediaSource.Factory hlsFactory = new HlsMediaSource.Factory(buildDataSourceFactory(BANDWIDTH_METER, userAgent));
                 return hlsFactory.createMediaSource(uri, mMainHandler, mMediaSourceEventListener);
-//                return new HlsMediaSource(uri, buildDataSourceFactory(BANDWIDTH_METER, userAgent), mMainHandler, mMediaSourceEventListener);
             case C.TYPE_OTHER:
                 ExtractorMediaSource.Factory extractorFactory= new ExtractorMediaSource.Factory(buildDataSourceFactory(BANDWIDTH_METER, userAgent));
                 extractorFactory.setContinueLoadingCheckIntervalBytes(ExtractorMediaSource.DEFAULT_LOADING_CHECK_INTERVAL_BYTES * 2);
                 return extractorFactory.createMediaSource(uri, mMainHandler, mMediaSourceEventListener);
-//                return new ExtractorMediaSource(uri, buildDataSourceFactory(BANDWIDTH_METER, userAgent), new DefaultExtractorsFactory(),
-//                        mMainHandler, mMediaSourceEventListener);
             default: {
                 throw new IllegalStateException("Unsupported type: " + type);
             }
