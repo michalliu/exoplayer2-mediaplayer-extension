@@ -278,8 +278,8 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
             Log.v(TAG, "looping play video");
 //            mMediaSource = new LoopingMediaSource(mMediaSource);
         }
-        mExoPlayer.prepare(mMediaSource);
         mExoPlayer.setPlayWhenReady(false);
+        mExoPlayer.prepare(mMediaSource);
     }
 
     @Override
