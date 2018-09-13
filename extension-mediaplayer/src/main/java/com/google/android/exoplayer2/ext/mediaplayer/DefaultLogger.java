@@ -6,7 +6,7 @@ import android.util.Log;
  * Created by michal on 9/23/15.
  */
 public class DefaultLogger implements ILogger {
-    public static final String TAG = "ExoMediaPlayer";
+    public static final String TAG = "OskPlayer";
     /**
      * Send a {@link #VERBOSE} log message.
      *
