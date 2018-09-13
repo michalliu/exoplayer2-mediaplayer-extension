@@ -340,7 +340,7 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
     }
 
     @Override
-    public void release() {
+    public synchronized void release() {
         mIsRelease = true;
         if (mExoPlayer != null) {
             setBufferRepeaterStarted(false);
@@ -531,13 +531,18 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
             mWakeLock = null;
         }
 
-        //Acquires the wakelock if we have permissions
-        if (context.getPackageManager().checkPermission(Manifest.permission.WAKE_LOCK, context.getPackageName()) == PackageManager.PERMISSION_GRANTED) {
-            PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
-            mWakeLock = pm.newWakeLock(mode | PowerManager.ON_AFTER_RELEASE, ExoMediaPlayer.class.getName());
-            mWakeLock.setReferenceCounted(false);
-        } else {
-            Log.w(TAG, "Unable to acquire WAKE_LOCK due to missing manifest permission");
+        try {
+            //Acquires the wakelock if we have permissions
+            if (context.getPackageManager().checkPermission(Manifest.permission.WAKE_LOCK, context.getPackageName()) == PackageManager.PERMISSION_GRANTED) {
+                PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+                mWakeLock = pm.newWakeLock(mode | PowerManager.ON_AFTER_RELEASE, ExoMediaPlayer.class.getName());
+                mWakeLock.setReferenceCounted(false);
+            } else {
+                Log.w(TAG, "Unable to acquire WAKE_LOCK due to missing manifest permission");
+            }
+        } catch (Exception ex) {
+            // android.os.DeadObjectException java.lang.RuntimeException:Package manager has died
+            Log.w(TAG, "Unable to acquire WAKE_LOCK ", ex);
         }
 
         stayAwake(wasHeld);
@@ -694,7 +699,7 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
         }
     }
 
-    private String getDecoderInfoString() {
+    protected String getDecoderInfoString() {
         String result = "";
         if (mVideoDecoderInfo != null) {
             result += mVideoDecoderInfo;
@@ -707,14 +712,14 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
         return result;
     }
 
-    private String getVideoDecoderName() {
+    protected String getVideoDecoderName() {
         if (mVideoDecoderInfo != null) {
             return mVideoDecoderInfo.decoderName;
         }
         return "Exo2NoVideoDecoder";
     }
 
-    private String getSelectedTrackInfoString() {
+    protected String getSelectedTrackInfoString() {
         String result = "";
         if (mExoPlayer == null) {
             return null;
@@ -969,22 +974,24 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
         // BufferUpdate Repeater
         @Override
         public void onUpdate() {
-            if (mIsRelease) {
-                return;
-            }
-            if (mExoPlayer != null) {
-                int state = mExoPlayer.getPlaybackState();
-                switch (state) {
-                    case ExoPlayer.STATE_IDLE:
-                    case ExoPlayer.STATE_ENDED:
-                        setBufferRepeaterStarted(false);
-                        break;
-                    case ExoPlayer.STATE_READY:
-                    case ExoPlayer.STATE_BUFFERING:
-                        notifyOnBufferingUpdate(getBufferedPercentage());
-                        break;
+            synchronized (ExoMediaPlayer.this) {
+                if (mIsRelease) {
+                    return;
+                }
+                if (mExoPlayer != null) {
+                    int state = mExoPlayer.getPlaybackState();
+                    switch (state) {
+                        case ExoPlayer.STATE_IDLE:
+                        case ExoPlayer.STATE_ENDED:
+                            setBufferRepeaterStarted(false);
+                            break;
+                        case ExoPlayer.STATE_READY:
+                        case ExoPlayer.STATE_BUFFERING:
+                            notifyOnBufferingUpdate(getBufferedPercentage());
+                            break;
 //                    default:
                         // no op
+                    }
                 }
             }
         }
@@ -1162,7 +1169,7 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
     }
 
     // reportPlayerState
-    private void reportPlayerState() {
+    private synchronized void reportPlayerState() {
         if (mExoPlayer == null || mIsRelease) {
             return;
         }
