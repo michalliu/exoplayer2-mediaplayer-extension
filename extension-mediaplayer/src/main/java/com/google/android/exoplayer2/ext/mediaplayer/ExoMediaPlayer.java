@@ -676,7 +676,9 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
                 mMainHandler.postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        mExoPlayer.seekTo(pos);
+                        if (mExoPlayer != null) {
+                            mExoPlayer.seekTo(pos);
+                        }
                     }
                 }, 200);
             }
@@ -735,6 +737,16 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
         if (mExoPlayer == null) {
             return null;
         }
+//        TrackSelectionArray selections = mExoPlayer.getCurrentTrackSelections();
+//        for (int i = 0; i < selections.length; i++) {
+//            TrackSelection selection = selections.get(i);
+//            if (selection != null) {
+//                result += ( i + ": " + selection.length() + " tracks use "
+//                        + selection.getSelectedIndex() + " "
+//                        + selection.getSelectedFormat().sampleMimeType);
+//            }
+//            result += "\n";
+//        }
         result += describeVideoFormat() + "\n";
         result += describeAudioFormat();
         return result;
@@ -1135,7 +1147,7 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
             prevStates[0] = prevStates[1];
             prevStates[1] = prevStates[2];
             prevStates[2] = prevStates[3];
-            prevStates[3] = newState; // TODO: 原处这里为 state 应该是笔误
+            prevStates[3] = newState;
             getLogger().v(TAG, "MostRecentState [" + prevStates[0]
                     + "," + prevStates[1]
                     + "," + prevStates[2]
