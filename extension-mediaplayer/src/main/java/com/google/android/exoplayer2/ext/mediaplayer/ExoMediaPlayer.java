@@ -28,7 +28,6 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.PowerManager;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -96,6 +95,7 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
     private static final int BUFFER_REPEAT_DELAY = 1000;
 
     private static final DefaultBandwidthMeter BANDWIDTH_METER = new DefaultBandwidthMeter();
+    private static ILogger sLogger = null;
 
     private Context mAppContext;
     private ExoPlayer mExoPlayer;
@@ -171,6 +171,17 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
         } catch (MediaCodecUtil.DecoderQueryException ex) {
             ex.printStackTrace(); // ignore
         }
+    }
+
+    public static void setLogger(ILogger logger) {
+        sLogger = logger;
+    }
+
+    public static ILogger getLogger() {
+        if (sLogger == null) {
+            sLogger = new DefaultLogger();
+        }
+        return sLogger;
     }
 
     public ExoMediaPlayer(Context ctx) {
@@ -270,12 +281,12 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
 
     @Override
     public void prepareAsync() throws IllegalStateException {
-        Log.v(TAG, "prepareAsync");
+        getLogger().v(TAG, "prepareAsync");
         if (mSurface != null) {
             setSurface(mSurface);
         }
         if (mIsLooping) {
-            Log.v(TAG, "looping play video");
+            getLogger().v(TAG, "looping play video");
 //            mMediaSource = new LoopingMediaSource(mMediaSource);
         }
         mExoPlayer.setPlayWhenReady(false);
@@ -501,7 +512,7 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
     @Override
     public void setSurface(Surface surface) {
         if (mScreenOnWhilePlaying && surface != null) {
-            Log.w(TAG, "setScreenOnWhilePlaying(true) is ineffective for Surface");
+            getLogger().w(TAG, "setScreenOnWhilePlaying(true) is ineffective for Surface");
         }
         removeSurfaceCallbacks();
         setVideoSurfaceInternal(surface, false);
@@ -511,7 +522,7 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
     public void setScreenOnWhilePlaying(boolean screenOn) {
         if (mScreenOnWhilePlaying != screenOn) {
             if (screenOn && mSurfaceHolder == null) {
-                Log.w(TAG, "setScreenOnWhilePlaying(true) is ineffective without a SurfaceHolder");
+                getLogger().w(TAG, "setScreenOnWhilePlaying(true) is ineffective without a SurfaceHolder");
             }
             mScreenOnWhilePlaying = screenOn;
             updateSurfaceScreenOn();
@@ -538,11 +549,11 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
                 mWakeLock = pm.newWakeLock(mode | PowerManager.ON_AFTER_RELEASE, ExoMediaPlayer.class.getName());
                 mWakeLock.setReferenceCounted(false);
             } else {
-                Log.w(TAG, "Unable to acquire WAKE_LOCK due to missing manifest permission");
+                getLogger().w(TAG, "Unable to acquire WAKE_LOCK due to missing manifest permission");
             }
         } catch (Exception ex) {
             // android.os.DeadObjectException java.lang.RuntimeException:Package manager has died
-            Log.w(TAG, "Unable to acquire WAKE_LOCK ", ex);
+            getLogger().w(TAG, "Unable to acquire WAKE_LOCK ", ex);
         }
 
         stayAwake(wasHeld);
@@ -621,7 +632,7 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
             setVideoSurfaceInternal(null, true);
         } else {
             if (textureView.getSurfaceTextureListener() != null) {
-                Log.w(TAG, "Replacing existing SurfaceTextureListener");
+                getLogger().w(TAG, "Replacing existing SurfaceTextureListener");
             }
             SurfaceTexture surfaceTexture = textureView.getSurfaceTexture();
             setVideoSurfaceInternal(surfaceTexture == null ? null : new Surface(surfaceTexture), true);
@@ -638,7 +649,7 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
     private void removeSurfaceCallbacks() {
         if (mTextureView != null) {
             if (mTextureView.getSurfaceTextureListener() != mSurfaceListener) {
-                Log.w(TAG, "SurfaceTextureListener already unset or replaced");
+                getLogger().w(TAG, "SurfaceTextureListener already unset or replaced");
             } else {
                 mTextureView.setSurfaceTextureListener(null);
             }
@@ -652,7 +663,7 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
 
     private void setVideoSurfaceInternal(Surface surface, boolean ownsSurface) {
         if (mExoPlayer == null) {
-            Log.w(TAG, "call setVideoSurfaceInternal after release");
+            getLogger().w(TAG, "call setVideoSurfaceInternal after release");
             return;
         }
         if (mSurface != null && mSurface != surface && surface != null) {
@@ -778,7 +789,7 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
                                 int trackSelectionReason, Object trackSelectionData, long mediaStartTimeMs,
                                 long mediaEndTimeMs, long elapsedRealtimeMs, long loadDurationMs, long bytesLoaded,
                                 IOException error, boolean wasCanceled) {
-            Log.d(TAG, "AdaptiveMediaSourceEventListener loadError " + error
+            getLogger().d(TAG, "AdaptiveMediaSourceEventListener loadError " + error
                     + "\n" + ExoMediaPlayerUtils.getPrintableStackTrace(error));
         }
 
@@ -796,7 +807,7 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
         //  ExtractorMediaSource.EventListener
         @Override
         public void onLoadError(IOException error) {
-            Log.d(TAG, "ExtractorMediaSource loadError " + error
+            getLogger().d(TAG, "ExtractorMediaSource loadError " + error
                     + "\n" + ExoMediaPlayerUtils.getPrintableStackTrace(error));
         }
     }
@@ -849,12 +860,12 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
         // VideoRendererEventListener
         @Override
         public void onVideoEnabled(DecoderCounters decoderCounters) {
-            Log.d(TAG, "onVideoEnabled");
+            getLogger().d(TAG, "onVideoEnabled");
         }
 
         @Override
         public void onVideoDecoderInitialized(String decoderName, long initializedTimestampMs, long initializationDurationMs) {
-            Log.d(TAG, "onAudioDecoderInitialized decoderName=" + decoderName
+            getLogger().d(TAG, "onAudioDecoderInitialized decoderName=" + decoderName
                     +",initializedTimestampMs=" + initializedTimestampMs
                     +",initializationDurationMs=" + initializationDurationMs);
             mVideoDecoderInfo = new DecoderInfo(DecoderInfo.TYPE_VIDEO, decoderName, initializationDurationMs);
@@ -862,13 +873,13 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
 
         @Override
         public void onVideoInputFormatChanged(Format format) {
-            Log.d(TAG, "onVideoInputFormatChanged");
+            getLogger().d(TAG, "onVideoInputFormatChanged");
             mVideoFormat = format;
         }
 
         @Override
         public void onDroppedFrames(int count, long elapsedMs) {
-            Log.d(TAG, "onDroppedFrames");
+            getLogger().d(TAG, "onDroppedFrames");
         }
 
         @Override
@@ -883,7 +894,7 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
 
         @Override
         public void onRenderedFirstFrame(Surface surface) {
-            Log.d(TAG, "onRenderedFirstFrame");
+            getLogger().d(TAG, "onRenderedFirstFrame");
             if (mExoPlayer != null && ExoMediaPlayer.this.mSurface == surface) {
                 if (mExoPlayer.getPlayWhenReady() && !mFirstFrameDecodedEventSent) { // avoid preparing ---> started
                     notifyOnInfo(MEDIA_INFO_VIDEO_RENDERING_START, 0);
@@ -895,25 +906,25 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
 
         @Override
         public void onVideoDisabled(DecoderCounters decoderCounters) {
-            Log.d(TAG, "onVideoDisabled");
+            getLogger().d(TAG, "onVideoDisabled");
         }
 
         // AudioRendererEventListener
         @Override
         public void onAudioEnabled(DecoderCounters decoderCounters) {
-            Log.d(TAG, "onAudioEnabled");
+            getLogger().d(TAG, "onAudioEnabled");
             mAudioSessionId = C.AUDIO_SESSION_ID_UNSET;
         }
 
         @Override
         public void onAudioSessionId(int sessionId) {
-            Log.d(TAG, "onAudioSessionId " + sessionId);
+            getLogger().d(TAG, "onAudioSessionId " + sessionId);
             mAudioSessionId = sessionId;
         }
 
         @Override
         public void onAudioDecoderInitialized(String decoderName, long initializedTimestampMs, long initializationDurationMs) {
-            Log.d(TAG, "onAudioDecoderInitialized decoderName=" + decoderName
+            getLogger().d(TAG, "onAudioDecoderInitialized decoderName=" + decoderName
                     +",initializedTimestampMs" + initializedTimestampMs
                     +",initializationDurationMs" + initializationDurationMs);
             mAudioDecoderInfo = new DecoderInfo(DecoderInfo.TYPE_AUDIO, decoderName, initializationDurationMs);
@@ -921,13 +932,13 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
 
         @Override
         public void onAudioInputFormatChanged(Format format) {
-            Log.d(TAG, "onAudioInputFormatChanged");
+            getLogger().d(TAG, "onAudioInputFormatChanged");
             mAudioFormat = format;
         }
 
         @Override
         public void onAudioSinkUnderrun(int bufferSize, long bufferSizeMs, long elapsedSinceLastFeedMs) {
-            Log.d(TAG, "onAudioSinkUnderrun bufferSize=" + bufferSize
+            getLogger().d(TAG, "onAudioSinkUnderrun bufferSize=" + bufferSize
                     + ",bufferSizeMs" + bufferSizeMs
                     + ",elapsedSinceLastFeedMs" + elapsedSinceLastFeedMs);
         }
@@ -944,7 +955,7 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
 
         @Override
         public void onRenderAudioData(byte[] audioData) {
-            Log.v(TAG, "onRenderAudioData " + audioData.length);
+            getLogger().v(TAG, "onRenderAudioData " + audioData.length);
             if (mCalculateAudioLevel && mAudioFrameManager == null) {
                 mAudioFrameManager = new AudioFrameManager();
             }
@@ -959,13 +970,13 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
         // MetadataRenderer.Output
         @Override
         public void onMetadata(Metadata metadata) {
-            Log.d(TAG, "onMetadata");
+            getLogger().d(TAG, "onMetadata");
         }
 
         // TextRenderer.Output
         @Override
         public void onCues(List<Cue> list) {
-            Log.d(TAG, "onCues");
+            getLogger().d(TAG, "onCues");
         }
     }
 
@@ -1002,22 +1013,22 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
         // ExoPlayer.EventListener
         @Override
         public void onTimelineChanged(Timeline timeline, Object manifest, int reason) {
-            Log.d(TAG, "onTimelineChanged reason=" + reason);
+            getLogger().d(TAG, "onTimelineChanged reason=" + reason);
         }
 
         @Override
         public void onTracksChanged(TrackGroupArray trackGroups, TrackSelectionArray trackSelections) {
-            Log.d(TAG, "onTimelineChanged");
+            getLogger().d(TAG, "onTimelineChanged");
         }
 
         @Override
         public void onLoadingChanged(boolean isLoading) {
-            Log.d(TAG, "onLoadingChanged " + isLoading);
+            getLogger().d(TAG, "onLoadingChanged " + isLoading);
         }
 
         @Override
         public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
-            Log.d(TAG, "onPlayerStateChanged playWhenReady=" + playWhenReady
+            getLogger().d(TAG, "onPlayerStateChanged playWhenReady=" + playWhenReady
                     + ",playbackState=" + playbackState);
             reportPlayerState();
         }
@@ -1033,7 +1044,7 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
                     if (cause instanceof HttpDataSource.HttpDataSourceException) {
                         if (cause.toString().contains("Unable to connect")) {
                             boolean hasNetwork = ExoMediaPlayerUtils.isNetworkAvailable(mAppContext);
-                            Log.e(TAG, "ExoPlaybackException hasNetwork=" + hasNetwork
+                            getLogger().e(TAG, "ExoPlaybackException hasNetwork=" + hasNetwork
                                     + " caused by:\n"+ cause.toString());
                             if (!hasNetwork) {
                                 notifyOnError(EXO_MEDIA_ERROR_WHAT_IO, EXO_MEDIA_ERROR_EXTRA_NETWORK);
@@ -1056,47 +1067,47 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
                             }
                         }
                     } else if (cause instanceof UnrecognizedInputFormatException) {
-                        Log.i(TAG, ExoMediaPlayerUtils.getLogcatContent());
+                        getLogger().i(TAG, ExoMediaPlayerUtils.getLogcatContent());
                         notifyOnError(EXO_MEDIA_ERROR_WHAT_EXTRACTOR, EXO_MEDIA_ERROR_EXTRA_UNKNOWN);
                     } else if (cause instanceof IllegalStateException) { // maybe throw by MediaCodec dequeueInputBuffer
-                        Log.i(TAG, ExoMediaPlayerUtils.getLogcatContent());
+                        getLogger().i(TAG, ExoMediaPlayerUtils.getLogcatContent());
                         notifyOnError(EXO_MEIDA_ERROR_ILLEGAL_STATE, EXO_MEDIA_ERROR_EXTRA_UNKNOWN);
                     } else if (cause instanceof MediaCodecRenderer.DecoderInitializationException) {
-                        Log.i(TAG, ExoMediaPlayerUtils.getLogcatContent());
+                        getLogger().i(TAG, ExoMediaPlayerUtils.getLogcatContent());
                         notifyOnError(EXO_MEIDA_ERROR_MEDIACODEC_DECODER_INIT, EXO_MEDIA_ERROR_EXTRA_UNKNOWN);
                     }
                 }
             }
-            Log.e(TAG, "ExoPlaybackException " + error + "\n"
+            getLogger().e(TAG, "ExoPlaybackException " + error + "\n"
                     + ExoMediaPlayerUtils.getPrintableStackTrace(error));
-            Log.i(TAG, ExoMediaPlayerUtils.getLogcatContent(0, null, 30));
+            getLogger().i(TAG, ExoMediaPlayerUtils.getLogcatContent(0, null, 30));
             notifyOnError(EXO_MEDIA_ERROR_WHAT_UNKNOWN, EXO_MEDIA_ERROR_EXTRA_UNKNOWN);
         }
 
         @Override
         public void onPositionDiscontinuity(int reason) {
-            Log.d(TAG, "onPositionDiscontinuity reason=" + reason);
+            getLogger().d(TAG, "onPositionDiscontinuity reason=" + reason);
         }
 
         @Override
         public void onShuffleModeEnabledChanged(boolean shuffleModeEnabled) {
-            Log.d(TAG, "onShuffleModeEnabledChanged shuffleModeEnabled=" + shuffleModeEnabled);
+            getLogger().d(TAG, "onShuffleModeEnabledChanged shuffleModeEnabled=" + shuffleModeEnabled);
         }
 
         @Override
         public void onSeekProcessed() {
-            Log.d(TAG, "onSeekProcessed");
+            getLogger().d(TAG, "onSeekProcessed");
         }
 
         @Override
         public void onPlaybackParametersChanged(PlaybackParameters playbackParameters) {
-            Log.d(TAG, "onPlaybackParametersChanged ["
+            getLogger().d(TAG, "onPlaybackParametersChanged ["
                     + playbackParameters.speed + "," + playbackParameters.pitch + "]");
         }
 
         @Override
         public void onRepeatModeChanged(@Player.RepeatMode int repeatMode) {
-            Log.d(TAG, "onRepeatModeChanged " + repeatMode);
+            getLogger().d(TAG, "onRepeatModeChanged " + repeatMode);
         }
     }
 
@@ -1115,7 +1126,7 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
 
         void setMostRecentState(boolean playWhenReady, int state) {
             int newState = getState(playWhenReady, state);
-            Log.v(TAG, "request setMostRecentState [" + playWhenReady
+            getLogger().v(TAG, "request setMostRecentState [" + playWhenReady
                     + "," + state + "], lastState=" + prevStates[3] + ",newState=" + newState);
             if (prevStates[3] == newState) {
                 return;
@@ -1125,7 +1136,7 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
             prevStates[1] = prevStates[2];
             prevStates[2] = prevStates[3];
             prevStates[3] = newState; // TODO: 原处这里为 state 应该是笔误
-            Log.v(TAG, "MostRecentState [" + prevStates[0]
+            getLogger().v(TAG, "MostRecentState [" + prevStates[0]
                     + "," + prevStates[1]
                     + "," + prevStates[2]
                     + "," + prevStates[3] + "]");
@@ -1178,7 +1189,7 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
 
         int newState = mStateStore.getState(playWhenReady, playbackState);
         if (newState != mStateStore.getMostRecentState()) {
-            Log.d(TAG, "setMostRecentState [" + playWhenReady + "," + playbackState + "]");
+            getLogger().d(TAG, "setMostRecentState [" + playWhenReady + "," + playbackState + "]");
             mStateStore.setMostRecentState(playWhenReady, playbackState);
 
             //Makes sure the buffering notifications are sent
@@ -1190,7 +1201,7 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
 
             if (newState == mStateStore.getState(true, ExoPlayer.STATE_ENDED)) {
                 if (isLooping()) {
-                    Log.i(TAG, "looping play video seek to beginning");
+                    getLogger().i(TAG, "looping play video seek to beginning");
                     seekTo(0);
                     mLoopingPlaySeek = true;
                 } else {
@@ -1312,28 +1323,28 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
     }
 
     private void notifyOnPrepared() {
-        Log.v(TAG, "notifyOnPrepared");
+        getLogger().v(TAG, "notifyOnPrepared");
         if (mOnPreparedListener != null) {
             mOnPreparedListener.onPrepared(this);
         }
     }
 
     private void notifyOnCompletion() {
-        Log.v(TAG, "notifyOnCompletion");
+        getLogger().v(TAG, "notifyOnCompletion");
         if (mOnCompletionListener != null) {
             mOnCompletionListener.onCompletion(this);
         }
     }
 
     private void notifyOnBufferingUpdate(int percent) {
-        Log.v(TAG, "notifyOnBufferingUpdate " + percent);
+        getLogger().v(TAG, "notifyOnBufferingUpdate " + percent);
         if (mOnBufferingUpdateListener != null) {
             mOnBufferingUpdateListener.onBufferingUpdate(this, percent);
         }
     }
 
     private void notifyOnSeekComplete() {
-        Log.v(TAG, "notifyOnSeekComplete");
+        getLogger().v(TAG, "notifyOnSeekComplete");
         if (mOnSeekCompleteListener != null) {
             mOnSeekCompleteListener.onSeekComplete(this);
         }
@@ -1341,7 +1352,7 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
 
     private void notifyOnVideoSizeChanged(int width, int height,
                                           int sarNum, int sarDen) {
-        Log.v(TAG, "notifyOnVideoSizeChanged [" + width + "," + height + "]");
+        getLogger().v(TAG, "notifyOnVideoSizeChanged [" + width + "," + height + "]");
         if (mOnVideoSizeChangedListener != null) {
             mOnVideoSizeChangedListener.onVideoSizeChanged(this, width, height/*,
                     sarNum, sarDen*/);
@@ -1349,12 +1360,12 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
     }
 
     private boolean notifyOnError(int what, int extra) {
-        Log.d(TAG, "notifyOnError [" + what + "," + extra + "]");
+        getLogger().d(TAG, "notifyOnError [" + what + "," + extra + "]");
         return mOnErrorListener != null && mOnErrorListener.onError(this, what, extra);
     }
 
     private boolean notifyOnInfo(int what, int extra) {
-        Log.d(TAG, "notifyOnInfo [" + what + "," + extra + "]");
+        getLogger().d(TAG, "notifyOnInfo [" + what + "," + extra + "]");
         return mOnInfoListener != null && mOnInfoListener.onInfo(this, what, extra);
     }
 
@@ -1363,13 +1374,13 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
 
     // 修改流控参数配置
     public static void updateLoadControlConfig(QLoadControl.Config config) {
-        Log.d(TAG, "updateLoadControlConfig " + config);
+        getLogger().d(TAG, "updateLoadControlConfig " + config);
         QLoadControl.updateConfig(config);
     }
 
     // 修改流控参数配置，支持字符串
     public static void updateLoadControlConfig(String configStr) {
-        Log.d(TAG, "updateLoadControlConfig " + configStr);
+        getLogger().d(TAG, "updateLoadControlConfig " + configStr);
         QLoadControl.updateConfig(configStr);
     }
 
