@@ -1336,6 +1336,11 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
 
     private void notifyOnPrepared() {
         getLogger().v(TAG, "notifyOnPrepared");
+        synchronized (ExoMediaPlayer.this) {
+            if (mIsRelease) {
+                return;
+            }
+        }
         if (mOnPreparedListener != null) {
             mOnPreparedListener.onPrepared(this);
         }
@@ -1343,6 +1348,11 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
 
     private void notifyOnCompletion() {
         getLogger().v(TAG, "notifyOnCompletion");
+        synchronized (ExoMediaPlayer.this) {
+            if (mIsRelease) {
+                return;
+            }
+        }
         if (mOnCompletionListener != null) {
             mOnCompletionListener.onCompletion(this);
         }
@@ -1350,6 +1360,11 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
 
     private void notifyOnBufferingUpdate(int percent) {
         getLogger().v(TAG, "notifyOnBufferingUpdate " + percent);
+        synchronized (ExoMediaPlayer.this) {
+            if (mIsRelease) {
+                return;
+            }
+        }
         if (mOnBufferingUpdateListener != null) {
             mOnBufferingUpdateListener.onBufferingUpdate(this, percent);
         }
@@ -1357,6 +1372,11 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
 
     private void notifyOnSeekComplete() {
         getLogger().v(TAG, "notifyOnSeekComplete");
+        synchronized (ExoMediaPlayer.this) {
+            if (mIsRelease) {
+                return;
+            }
+        }
         if (mOnSeekCompleteListener != null) {
             mOnSeekCompleteListener.onSeekComplete(this);
         }
@@ -1365,6 +1385,11 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
     private void notifyOnVideoSizeChanged(int width, int height,
                                           int sarNum, int sarDen) {
         getLogger().v(TAG, "notifyOnVideoSizeChanged [" + width + "," + height + "]");
+        synchronized (ExoMediaPlayer.this) {
+            if (mIsRelease) {
+                return;
+            }
+        }
         if (mOnVideoSizeChangedListener != null) {
             mOnVideoSizeChangedListener.onVideoSizeChanged(this, width, height/*,
                     sarNum, sarDen*/);
