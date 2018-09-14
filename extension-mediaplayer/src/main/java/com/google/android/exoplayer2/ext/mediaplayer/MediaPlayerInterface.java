@@ -119,6 +119,8 @@ public interface MediaPlayerInterface {
 
     void setOnInfoListener(OnInfoListener listener);
 
+    void setOnLoopStartListener(OnLoopStartListener listener);
+
     interface OnPreparedListener {
         void onPrepared(MediaPlayerInterface mp);
     }
@@ -152,5 +154,9 @@ public interface MediaPlayerInterface {
      */
     interface AudioEventListener {
         void onRenderAudioData(final byte[] audioData, Format audioFormat);
+    }
+
+    interface OnLoopStartListener {
+        void onLoopStart(MediaPlayerInterface mp);
     }
 }

@@ -154,6 +154,7 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
     private OnVideoSizeChangedListener mOnVideoSizeChangedListener;
     private OnErrorListener mOnErrorListener;
     private OnInfoListener mOnInfoListener;
+    protected OnLoopStartListener mOnLoopStartListener;
 
     private AudioEventListener mAudioEventListener;
     private AudioFrameManager mAudioFrameManager;
@@ -598,6 +599,11 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
     @Override
     public void setOnInfoListener(OnInfoListener listener) {
         mOnInfoListener = listener;
+    }
+
+    @Override
+    public void setOnLoopStartListener(OnLoopStartListener listener) {
+        mOnLoopStartListener = listener;
     }
 
     public void setAudioEventListener(AudioEventListener listener) {
@@ -1215,6 +1221,9 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
                 if (isLooping()) {
                     getLogger().i(TAG, "looping play video seek to beginning");
                     seekTo(0);
+                    if (mOnLoopStartListener != null) {
+                        mOnLoopStartListener.onLoopStart(ExoMediaPlayer.this);
+                    }
                     mLoopingPlaySeek = true;
                 } else {
                     notifyOnCompletion();
