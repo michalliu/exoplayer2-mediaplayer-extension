@@ -12,6 +12,7 @@ dependencies {
     implementation project(':exoplayer2-library-core')
 //    compile project(':exoplayer2-library-dash')
     implementation project(':exoplayer2-library-hls')
+    implementation project(':exoplayer2-extension-hevc')
 //    compile project(':exoplayer2-library-smoothstreaming')
 //    compile project(':exoplayer2-library-ui')
 //    compile project(':exoplayer2-extension-vp9')
