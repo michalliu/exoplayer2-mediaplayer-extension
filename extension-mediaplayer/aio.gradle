@@ -13,6 +13,7 @@ dependencies {
 //    compile project(':exoplayer2-library-dash')
     implementation project(':exoplayer2-library-hls')
     implementation project(':exoplayer2-extension-hevc')
+    implementation project(':exoplayer2-extension-vp9')
 //    compile project(':exoplayer2-library-smoothstreaming')
 //    compile project(':exoplayer2-library-ui')
 //    compile project(':exoplayer2-extension-vp9')
