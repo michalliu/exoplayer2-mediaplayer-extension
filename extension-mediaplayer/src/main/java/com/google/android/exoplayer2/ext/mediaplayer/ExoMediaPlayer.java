@@ -140,10 +140,10 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
     private boolean mFirstFrameDecodedEventSent = false;
     private boolean mCalculateAudioLevel = false;
 
-    private DecoderInfo mVideoDecoderInfo;
-    private DecoderInfo mAudioDecoderInfo;
-    private Format mVideoFormat;
-    private Format mAudioFormat;
+    protected DecoderInfo mVideoDecoderInfo;
+    protected DecoderInfo mAudioDecoderInfo;
+    protected Format mVideoFormat;
+    protected Format mAudioFormat;
 
     private volatile boolean mIsRelease;
 
@@ -154,7 +154,7 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
     private OnVideoSizeChangedListener mOnVideoSizeChangedListener;
     private OnErrorListener mOnErrorListener;
     private OnInfoListener mOnInfoListener;
-    protected OnLoopStartListener mOnLoopStartListener;
+    private OnLoopStartListener mOnLoopStartListener;
 
     private AudioEventListener mAudioEventListener;
     private AudioFrameManager mAudioFrameManager;
@@ -716,60 +716,6 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
         if (mSurfaceHolder != null) {
             mSurfaceHolder.setKeepScreenOn(mScreenOnWhilePlaying && mStayAwake);
         }
-    }
-
-    protected String getDecoderInfoString() {
-        String result = "";
-        if (mVideoDecoderInfo != null) {
-            result += mVideoDecoderInfo;
-            result += "\n";
-        }
-        if (mAudioDecoderInfo != null) {
-            result += mAudioDecoderInfo;
-        }
-        mExoPlayer.getCurrentTrackSelections();
-        return result;
-    }
-
-    protected String getVideoDecoderName() {
-        if (mVideoDecoderInfo != null) {
-            return mVideoDecoderInfo.decoderName;
-        }
-        return "Exo2NoVideoDecoder";
-    }
-
-    protected String getSelectedTrackInfoString() {
-        String result = "";
-        if (mExoPlayer == null) {
-            return null;
-        }
-//        TrackSelectionArray selections = mExoPlayer.getCurrentTrackSelections();
-//        for (int i = 0; i < selections.length; i++) {
-//            TrackSelection selection = selections.get(i);
-//            if (selection != null) {
-//                result += ( i + ": " + selection.length() + " tracks use "
-//                        + selection.getSelectedIndex() + " "
-//                        + selection.getSelectedFormat().sampleMimeType);
-//            }
-//            result += "\n";
-//        }
-        result += describeVideoFormat() + "\n";
-        result += describeAudioFormat();
-        return result;
-    }
-
-    private String describeVideoFormat() {
-        if (mVideoFormat == null) {
-            return "video:";
-        }
-        return "video:" + mVideoFormat.sampleMimeType + " [" + mVideoFormat.width + "x" + mVideoFormat.height + "]";
-    }
-
-    private String describeAudioFormat() {
-        if (mAudioFormat == null) {
-            return "audio:";
-        }
-        return "audio: " + mAudioFormat.sampleMimeType  + " " + mAudioFormat.sampleRate;
     }
 
     private int getBufferedPercentage() {
@@ -1430,8 +1376,24 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
         QLoadControl.updateConfig(configStr);
     }
 
+    public DecoderInfo getVideoDecoderInfo() {
+        return mVideoDecoderInfo;
+    }
+
+    public DecoderInfo getAudioDecoderInfo() {
+        return mAudioDecoderInfo;
+    }
+
+    public Format getVideoFormat() {
+        return mVideoFormat;
+    }
+
+    public Format getAudioFormat() {
+        return mAudioFormat;
+    }
+
     // DecoderInfo
-    private static class DecoderInfo {
+    public static class DecoderInfo {
         static final int TYPE_VIDEO = 0;
         static final int TYPE_AUDIO = 1;
         static final int TYPE_UNKNOWN = -1;
