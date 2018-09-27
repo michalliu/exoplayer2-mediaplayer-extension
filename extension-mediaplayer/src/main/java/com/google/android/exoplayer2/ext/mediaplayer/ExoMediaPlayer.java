@@ -1391,41 +1391,4 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
     public Format getAudioFormat() {
         return mAudioFormat;
     }
-
-    // DecoderInfo
-    public static class DecoderInfo {
-        static final int TYPE_VIDEO = 0;
-        static final int TYPE_AUDIO = 1;
-        static final int TYPE_UNKNOWN = -1;
-
-        int decoderType = TYPE_UNKNOWN; //
-        String decoderName = "";
-
-        long initializedTimestampMs = 0;
-        long initializationDurationMs = 0;
-
-        DecoderInfo(int decoderType, String decoderName, long initializationDurationMs) {
-            this.decoderType = decoderType;
-            this.decoderName = decoderName;
-            this.initializationDurationMs = initializationDurationMs;
-        }
-
-        private String type2Str(int decoderType) {
-            switch (decoderType) {
-                case TYPE_AUDIO:
-                    return "adec";
-                case TYPE_VIDEO:
-                    return "vdec";
-                default:
-                    return "unknown";
-            }
-        }
-
-        @Override
-        public String toString() {
-            return type2Str(decoderType)
-                        + ": " + decoderName
-                        + "," + initializationDurationMs;
-        }
-    }
 }
