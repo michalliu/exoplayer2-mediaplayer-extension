@@ -496,7 +496,7 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
     @Override
     public void setLooping(boolean looping) {
         mIsLooping = looping;
-        getLogger().d(TAG, "setLooping " + mIsLooping);
+        getLogger().i(TAG, "setLooping " + mIsLooping);
     }
 
     @Override
@@ -1166,12 +1166,12 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
 
             if (newState == mStateStore.getState(true, ExoPlayer.STATE_ENDED)) {
                 if (isLooping()) {
-                    getLogger().i(TAG, "looping play video seek to beginning");
+                    getLogger().i(TAG, "looping play start");
+                    mLoopingPlaySeek = true;
                     seekTo(0);
                     if (mOnLoopStartListener != null) {
                         mOnLoopStartListener.onLoopStart(ExoMediaPlayer.this);
                     }
-                    mLoopingPlaySeek = true;
                 } else {
                     notifyOnCompletion();
                 }
