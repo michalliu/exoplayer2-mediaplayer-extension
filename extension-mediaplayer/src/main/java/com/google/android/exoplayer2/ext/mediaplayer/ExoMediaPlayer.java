@@ -496,6 +496,7 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
     @Override
     public void setLooping(boolean looping) {
         mIsLooping = looping;
+        getLogger().d(TAG, "setLooping " + mIsLooping);
     }
 
     @Override
