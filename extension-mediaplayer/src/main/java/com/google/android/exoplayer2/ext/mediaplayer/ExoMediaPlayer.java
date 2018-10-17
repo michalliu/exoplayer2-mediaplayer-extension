@@ -175,12 +175,18 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
     }
 
     public static void setLogger(ILogger logger) {
-        sLogger = logger;
+        synchronized (ExoMediaPlayer.class) {
+            sLogger = logger;
+        }
     }
 
     public static ILogger getLogger() {
         if (sLogger == null) {
-            sLogger = new DefaultLogger();
+            synchronized (ExoMediaPlayer.class) {
+                if (sLogger == null) {
+                    sLogger = new DefaultLogger();
+                }
+            }
         }
         return sLogger;
     }
