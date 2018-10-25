@@ -26,5 +26,6 @@ android {
 }
 
 dependencies {
-    compile project(':extension-mediaplayer')
+    implementation project(':extension-mediaplayer')
+    implementation 'com.android.support:support-annotations:' + project.ext.supportLibraryVersion
 }

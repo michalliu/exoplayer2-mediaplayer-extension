@@ -18,6 +18,9 @@ import android.widget.Toast;
 
 import com.google.android.exoplayer2.ext.mediaplayer.ExoMediaPlayer;
 import com.google.android.exoplayer2.ext.mediaplayer.MediaPlayerInterface;
+import com.google.android.exoplayer2.ext.mediaplayer.VideoMeta;
+
+import java.util.Arrays;
 
 public class PlayerActivitySurfaceView extends Activity implements
         SurfaceHolder.Callback,
@@ -116,6 +119,31 @@ public class PlayerActivitySurfaceView extends Activity implements
         mDebugTextView.setVisibility(View.GONE);
     }
 
+    private void simplePlay() {
+        String url = "http://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4";
+        try {
+            mMediaPlayer.setDataSource(url);
+            mMediaPlayer.prepareAsync();
+            mJustCreatePlayer = false;
+        } catch (Exception ex) {
+            Toast.makeText(getApplicationContext(), ex.toString(), Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void multiSourcePlay() {
+        String url1 = "http://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4";
+        String url2 = "https://dlied5.qq.com/ABCmouse/aol/content/MusicVideo/13333/movie.mp4";
+        VideoMeta v1 = new VideoMeta(url1, 60095);
+        VideoMeta v2 = new VideoMeta(url2, 145109);
+        try {
+            mMediaPlayer.setDataSource(v1, v2);
+            mMediaPlayer.prepareAsync();
+            mJustCreatePlayer = false;
+        } catch (Exception ex) {
+            Toast.makeText(getApplicationContext(), ex.toString(), Toast.LENGTH_SHORT).show();
+        }
+    }
+
     @Override
     public void onClick(View v) {
         if (v.getId() == R.id.playpausebtn) {
@@ -123,14 +151,8 @@ public class PlayerActivitySurfaceView extends Activity implements
                 initPlayer();
             }
             if (mJustCreatePlayer) {
-                String url = "http://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4";
-                try {
-                    mMediaPlayer.setDataSource(url);
-                    mMediaPlayer.prepareAsync();
-                    mJustCreatePlayer = false;
-                } catch (Exception ex) {
-                    Toast.makeText(getApplicationContext(), ex.toString(), Toast.LENGTH_SHORT).show();
-                }
+//                simplePlay();
+                multiSourcePlay();
             } else {
                 if (mMediaPlayer.isPlaying()) {
                     mMediaPlayer.pause();

@@ -51,7 +51,9 @@ import com.google.android.exoplayer2.mediacodec.MediaCodecUtil;
 import com.google.android.exoplayer2.metadata.Metadata;
 import com.google.android.exoplayer2.metadata.MetadataRenderer;
 import com.google.android.exoplayer2.source.AdaptiveMediaSourceEventListener;
+import com.google.android.exoplayer2.source.ClippingMediaSource;
 import com.google.android.exoplayer2.source.ConcatenatingMediaSource;
+import com.google.android.exoplayer2.source.DynamicConcatenatingMediaSource;
 import com.google.android.exoplayer2.source.ExtractorMediaSource;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.TrackGroupArray;
@@ -74,6 +76,7 @@ import com.google.android.exoplayer2.video.VideoRendererEventListener;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -163,6 +166,8 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
     private double mLastAudioLevelEnergy = C.LENGTH_UNSET;
 
     private boolean mLoopingPlaySeek;
+
+    private ArrayList<Long> mClipDurations = new ArrayList<>(); // total duration in milliseconds
 
     static {
         try {
@@ -282,8 +287,24 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
     }
 
     @Override
-    public void setDataSource(List<String> path) throws IOException, IllegalArgumentException, SecurityException, IllegalStateException {
-        setDataSource(mAppContext, path);
+    public void setDataSource(List<VideoMeta> metas) throws IOException, IllegalArgumentException, SecurityException, IllegalStateException {
+        mMediaSource = new DynamicConcatenatingMediaSource();
+        long clipDuration = 0;
+        for (VideoMeta meta : metas) {
+            long start = meta.startPosition * 1000;
+            long end = (meta.endPosition == VideoMeta.OPEN_ENDED ? meta.duration : meta.endPosition) * 1000;
+            if (end <= start) {
+                throw new IllegalArgumentException("wrong range [" + start + "," + end + "]");
+            }
+            clipDuration += (end - start) / 1000;
+            mClipDurations.add(clipDuration);
+            MediaSource source = buildMediaSource(mAppContext, Uri.parse(meta.uri), null);
+            ((DynamicConcatenatingMediaSource) mMediaSource).addMediaSource(new ClippingMediaSource(source, start, end));
+        }
+    }
+
+    public void setDataSource(VideoMeta... videoMetas) throws IOException, IllegalArgumentException, SecurityException, IllegalStateException {
+        setDataSource(Arrays.asList(videoMetas));
     }
 
     @Override
@@ -337,7 +358,17 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
         if (mExoPlayer == null) {
             return;
         }
-        mExoPlayer.seekTo(positionMs);
+        if (mClipDurations.size() > 0) {
+            for (int i=0; i<mClipDurations.size(); i++) {
+                if (positionMs < mClipDurations.get(i)) {
+                    long offset = (i - 1) < 0 ? positionMs : positionMs - mClipDurations.get(i - 1);
+                    mExoPlayer.seekTo(i, offset);
+                    break;
+                }
+            }
+        } else {
+            mExoPlayer.seekTo(positionMs);
+        }
         mStateStore.setMostRecentState(mStateStore.isLastReportedPlayWhenReady(), StateStore.STATE_SEEKING);
     }
 
@@ -354,6 +385,7 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
             mFirstFrameDecoded = false;
             mFirstFrameDecodedEventSent = false;
             mStateStore.reset();
+            mClipDurations.clear();
         }
     }
 
@@ -373,6 +405,7 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
             mVideoWidth = 0;
             mVideoHeight = 0;
             mSurfaceHolder = null;
+            mClipDurations.clear();
         }
 
         if (mHandlerThread != null) {
@@ -402,6 +435,9 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
     public long getDuration() {
         if (mExoPlayer == null)
             return 0;
+        if (mClipDurations.size() > 0) {
+            return mClipDurations.get(mClipDurations.size() - 1);
+        }
         return mExoPlayer.getDuration();
     }
 
@@ -409,6 +445,11 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
     public long getCurrentPosition() {
         if (mExoPlayer == null)
             return 0;
+        if (mClipDurations.size() > 0) {
+            int idx = mExoPlayer.getCurrentWindowIndex();
+            long offset = idx > 0 ? mClipDurations.get(idx - 1) : 0;
+            return offset + mExoPlayer.getCurrentPosition();
+        }
         return mExoPlayer.getCurrentPosition();
     }
 

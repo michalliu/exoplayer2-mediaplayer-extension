@@ -57,7 +57,7 @@ public interface MediaPlayerInterface {
 
     void setDataSource(String path) throws IOException, IllegalArgumentException, SecurityException, IllegalStateException;
 
-    void setDataSource(List<String> path) throws IOException, IllegalArgumentException, SecurityException, IllegalStateException;
+    void setDataSource(List<VideoMeta> path) throws IOException, IllegalArgumentException, SecurityException, IllegalStateException;
 
     void prepareAsync() throws IllegalStateException;
 
