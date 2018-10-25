@@ -289,14 +289,13 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
     @Override
     public void setDataSource(List<VideoMeta> metas) throws IOException, IllegalArgumentException, SecurityException, IllegalStateException {
         mMediaSource = new DynamicConcatenatingMediaSource();
-        long clipDuration = 0;
         for (VideoMeta meta : metas) {
             long start = meta.startPosition * 1000;
             long end = (meta.endPosition == VideoMeta.OPEN_ENDED ? meta.duration : meta.endPosition) * 1000;
             if (end <= start) {
                 throw new IllegalArgumentException("wrong range [" + start + "," + end + "]");
             }
-            clipDuration += (end - start) / 1000;
+            long clipDuration = (end - start) / 1000;
             mClipDurations.add(clipDuration);
             MediaSource source = buildMediaSource(mAppContext, Uri.parse(meta.uri), null);
             ((DynamicConcatenatingMediaSource) mMediaSource).addMediaSource(new ClippingMediaSource(source, start, end));
@@ -359,10 +358,11 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
             return;
         }
         if (mClipDurations.size() > 0) {
+            long duration = 0;
             for (int i=0; i<mClipDurations.size(); i++) {
-                if (positionMs < mClipDurations.get(i)) {
-                    long offset = (i - 1) < 0 ? positionMs : positionMs - mClipDurations.get(i - 1);
-                    mExoPlayer.seekTo(i, offset);
+                duration += mClipDurations.get(i);
+                if (duration > positionMs) {
+                    mExoPlayer.seekTo(i, positionMs - duration + mClipDurations.get(i));
                     break;
                 }
             }
@@ -436,7 +436,11 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
         if (mExoPlayer == null)
             return 0;
         if (mClipDurations.size() > 0) {
-            return mClipDurations.get(mClipDurations.size() - 1);
+            long totalDuration = 0;
+            for (Long clipDuration : mClipDurations) {
+                totalDuration += clipDuration;
+            }
+            return totalDuration;
         }
         return mExoPlayer.getDuration();
     }
@@ -447,7 +451,11 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
             return 0;
         if (mClipDurations.size() > 0) {
             int idx = mExoPlayer.getCurrentWindowIndex();
-            long offset = idx > 0 ? mClipDurations.get(idx - 1) : 0;
+            long offset = 0;
+            while (idx > 0) {
+                idx--;
+                offset += mClipDurations.get(idx);
+            }
             return offset + mExoPlayer.getCurrentPosition();
         }
         return mExoPlayer.getCurrentPosition();
@@ -1026,6 +1034,12 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
         @Override
         public void onTimelineChanged(Timeline timeline, Object manifest, int reason) {
             getLogger().d(TAG, "onTimelineChanged reason=" + reason);
+            if (reason == Player.TIMELINE_CHANGE_REASON_PREPARED) {
+                if (mClipDurations.size() > 0) {
+                    getLogger().d(TAG, "update duration idx=" + mExoPlayer.getCurrentWindowIndex() + ",duration=" + mExoPlayer.getDuration());
+                    mClipDurations.set(mExoPlayer.getCurrentWindowIndex(), mExoPlayer.getDuration());
+                }
+            }
         }
 
         @Override
