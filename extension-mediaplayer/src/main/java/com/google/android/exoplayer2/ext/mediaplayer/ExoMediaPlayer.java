@@ -166,6 +166,7 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
     private double mLastAudioLevelEnergy = C.LENGTH_UNSET;
 
     private boolean mLoopingPlaySeek;
+    private int mLastBufferedPercentage;
 
     private ArrayList<Long> mClipDurations = new ArrayList<>(); // total duration in milliseconds
 
@@ -386,6 +387,7 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
             mFirstFrameDecodedEventSent = false;
             mStateStore.reset();
             mClipDurations.clear();
+            mLastBufferedPercentage = 0;
         }
     }
 
@@ -406,6 +408,7 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
             mVideoHeight = 0;
             mSurfaceHolder = null;
             mClipDurations.clear();
+            mLastBufferedPercentage = 0;
         }
 
         if (mHandlerThread != null) {
@@ -1018,7 +1021,11 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
                             break;
                         case ExoPlayer.STATE_READY:
                         case ExoPlayer.STATE_BUFFERING:
-                            notifyOnBufferingUpdate(getBufferedPercentage());
+                            int percent = getBufferedPercentage();
+                            if (percent != mLastBufferedPercentage) {
+                                notifyOnBufferingUpdate(percent);
+                                mLastBufferedPercentage = percent;
+                            }
                             break;
 //                    default:
                         // no op
@@ -1044,12 +1051,15 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
 
         @Override
         public void onTracksChanged(TrackGroupArray trackGroups, TrackSelectionArray trackSelections) {
-            getLogger().d(TAG, "onTimelineChanged");
+            getLogger().d(TAG, "onTracksChanged");
         }
 
         @Override
         public void onLoadingChanged(boolean isLoading) {
             getLogger().d(TAG, "onLoadingChanged " + isLoading);
+            if (isLoading) {
+                setBufferRepeaterStarted(true);
+            }
         }
 
         @Override
@@ -1198,6 +1208,7 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
     }
 
     private void setBufferRepeaterStarted(boolean start) {
+        getLogger().d(TAG, "setBufferRepeaterStarted " + start);
         if (start && mOnBufferingUpdateListener != null) {
             mBufferUpdateRepeater.start();
         } else {
