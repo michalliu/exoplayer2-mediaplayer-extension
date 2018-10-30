@@ -1041,17 +1041,15 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
         @Override
         public void onTimelineChanged(Timeline timeline, Object manifest, int reason) {
             getLogger().d(TAG, "onTimelineChanged reason=" + reason);
-            if (reason == Player.TIMELINE_CHANGE_REASON_PREPARED) {
-                if (mClipDurations.size() > 0) {
-                    getLogger().d(TAG, "update duration idx=" + mExoPlayer.getCurrentWindowIndex() + ",duration=" + mExoPlayer.getDuration());
-                    mClipDurations.set(mExoPlayer.getCurrentWindowIndex(), mExoPlayer.getDuration());
-                }
-            }
         }
 
         @Override
         public void onTracksChanged(TrackGroupArray trackGroups, TrackSelectionArray trackSelections) {
             getLogger().d(TAG, "onTracksChanged");
+            if (mClipDurations.size() > 0) {
+                getLogger().d(TAG, "update duration idx=" + mExoPlayer.getCurrentWindowIndex() + ",duration=" + mExoPlayer.getDuration());
+                mClipDurations.set(mExoPlayer.getCurrentWindowIndex(), mExoPlayer.getDuration());
+            }
         }
 
         @Override
