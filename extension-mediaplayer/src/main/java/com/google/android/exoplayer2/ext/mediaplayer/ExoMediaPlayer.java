@@ -1072,6 +1072,8 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
             if (mExoPlayer != null) { // cz no error state
                 setBufferRepeaterStarted(false);
             }
+            getLogger().e(TAG, "ExoPlaybackException " + error + "\n"
+                    + ExoMediaPlayerUtils.getPrintableStackTrace(error));
             if (error != null) {
                 Throwable cause = error.getCause();
                 if (cause != null) {
@@ -1099,21 +1101,23 @@ public class ExoMediaPlayer implements MediaPlayerInterface, AudioLevelSupport {
                             } else {
                                 notifyOnError(EXO_MEDIA_ERROR_WHAT_IO, EXO_MEDIA_ERROR_RESPONSE_OTHER);
                             }
+                            return;
                         }
                     } else if (cause instanceof UnrecognizedInputFormatException) {
                         getLogger().i(TAG, ExoMediaPlayerUtils.getLogcatContent());
                         notifyOnError(EXO_MEDIA_ERROR_WHAT_EXTRACTOR, EXO_MEDIA_ERROR_EXTRA_UNKNOWN);
+                        return;
                     } else if (cause instanceof IllegalStateException) { // maybe throw by MediaCodec dequeueInputBuffer
                         getLogger().i(TAG, ExoMediaPlayerUtils.getLogcatContent());
                         notifyOnError(EXO_MEIDA_ERROR_ILLEGAL_STATE, EXO_MEDIA_ERROR_EXTRA_UNKNOWN);
+                        return;
                     } else if (cause instanceof MediaCodecRenderer.DecoderInitializationException) {
                         getLogger().i(TAG, ExoMediaPlayerUtils.getLogcatContent());
                         notifyOnError(EXO_MEIDA_ERROR_MEDIACODEC_DECODER_INIT, EXO_MEDIA_ERROR_EXTRA_UNKNOWN);
+                        return;
                     }
                 }
             }
-            getLogger().e(TAG, "ExoPlaybackException " + error + "\n"
-                    + ExoMediaPlayerUtils.getPrintableStackTrace(error));
             getLogger().i(TAG, ExoMediaPlayerUtils.getLogcatContent(0, null, 30));
             notifyOnError(EXO_MEDIA_ERROR_WHAT_UNKNOWN, EXO_MEDIA_ERROR_EXTRA_UNKNOWN);
         }
