@@ -8,7 +8,7 @@ It makes developers using exoplayer in their project much easier.
 
 # The dependencies
 No Dependency except Exoplayer.  
-Currently supports ExoPlayer 2.4.2 (the newest at the time of writting)
+Tested on ExoPlayer 2.7.1 (the newest at the time of writting)
 
 # Show me the code
 This project contains a simple demo, play video using SurfaceView just like the [MediaPlayer API](https://developer.android.com/reference/android/media/MediaPlayer.html)
