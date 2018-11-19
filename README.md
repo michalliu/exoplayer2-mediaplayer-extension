@@ -1,4 +1,4 @@
-# Who should this extension?
+# Why this extension?
 Since android mediaplayer has lots of problems. If you wish to swtiching the player from mediaplayer to ExoPlayer seamlessly, you are at the right place.
 
 # What the extension does?
@@ -8,7 +8,7 @@ It makes developers using exoplayer in their project much easier.
 
 # The dependencies
 No Dependency except Exoplayer.  
-Tested on ExoPlayer 2.7.1 (the newest at the time of writting), compatible with newer version therotical.
+Tested on ExoPlayer 2.7.1 (the newest at the time of writting), It should be compatible with latest version in therotical.
 
 # Show me the code
 This project contains a simple demo, play video using SurfaceView just like the [MediaPlayer API](https://developer.android.com/reference/android/media/MediaPlayer.html)
